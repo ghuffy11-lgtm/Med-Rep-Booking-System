@@ -1,0 +1,256 @@
+@extends('layouts.app')
+
+@section('title', 'Create Booking')
+@section('page-title', 'Create New Booking')
+
+@section('sidebar-menu')
+    <a href="{{ route('rep.dashboard') }}" class="nav-link">
+        <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+    <a href="{{ route('rep.bookings.index') }}" class="nav-link">
+        <i class="bi bi-calendar-check"></i> My Bookings
+    </a>
+    <a href="{{ route('rep.bookings.create') }}" class="nav-link active">
+        <i class="bi bi-plus-circle"></i> New Booking
+    </a>
+    <a href="{{ route('rep.bookings.history') }}" class="nav-link">
+        <i class="bi bi-clock-history"></i> History
+    </a>
+    <a href="{{ route('rep.profile.edit') }}" class="nav-link">
+        <i class="bi bi-person-circle"></i> My Profile
+    </a>
+@endsection
+
+@section('content')
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-calendar-plus"></i> New Appointment Request</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ route('rep.bookings.store') }}" method="POST" id="bookingForm">
+                    @csrf
+                    
+                    <div class="mb-4">
+                        <label for="department_id" class="form-label">
+                            <i class="bi bi-hospital"></i> Department *
+                        </label>
+                        <select 
+                            class="form-select @error('department_id') is-invalid @enderror" 
+                            id="department_id" 
+                            name="department_id" 
+                            required
+                        >
+                            <option value="">-- Select Department --</option>
+                            @foreach($departments as $department)
+                                <option value="{{ $department->id }}" {{ old('department_id') == $department->id ? 'selected' : '' }}>
+                                    {{ $department->name }}
+                                    @if($department->is_pharmacy_department)
+                                        <span class="badge bg-info">Pharmacy</span>
+                                    @endif
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('department_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="form-text text-muted">
+                            Choose the department you want to visit
+                        </small>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="booking_date" class="form-label">
+                            <i class="bi bi-calendar3"></i> Appointment Date *
+                        </label>
+                        <input 
+                            type="date" 
+                            class="form-control @error('booking_date') is-invalid @enderror" 
+                            id="booking_date" 
+                            name="booking_date" 
+                            value="{{ old('booking_date') }}"
+                            min="{{ date('Y-m-d') }}"
+                            required
+                        >
+                        @error('booking_date')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="form-text text-muted">
+                            Bookings are allowed on Tuesdays and Thursdays only
+                        </small>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="time_slot" class="form-label">
+                            <i class="bi bi-clock"></i> Time Slot *
+                        </label>
+                        <select 
+                            class="form-select @error('time_slot') is-invalid @enderror" 
+                            id="time_slot" 
+                            name="time_slot" 
+                            required
+                            disabled
+                        >
+                            <option value="">-- Select date first --</option>
+                        </select>
+                        @error('time_slot')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <div id="slot-loading" class="text-muted small mt-2" style="display: none;">
+                            <i class="bi bi-hourglass-split"></i> Loading available slots...
+                        </div>
+                        <div id="slot-info" class="mt-2"></div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                            <i class="bi bi-check-circle"></i> Submit Booking Request
+                        </button>
+                        <a href="{{ route('rep.dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Help Card -->
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Booking Guidelines</h6>
+            </div>
+            <div class="card-body">
+                <ul class="small mb-0">
+                    <li class="mb-2">Bookings are available on <strong>Tuesdays and Thursdays</strong> only</li>
+                    <li class="mb-2">You can only have <strong>one pending</strong> booking at a time</li>
+                    <li class="mb-2">After approval, you cannot book again for <strong>14 days</strong> from appointment date</li>
+                    <li class="mb-2">Pharmacy departments have <strong>limited slots</strong> (10/day)</li>
+                    <li class="mb-2">Non-pharmacy departments have <strong>20 slots/day</strong></li>
+                    <li>You will receive confirmation once your booking is approved</li>
+                </ul>
+            </div>
+        </div>
+        
+        @if($cooldownInfo['has_previous_booking'])
+        <div class="card border-warning mt-3">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0"><i class="bi bi-clock-history"></i> Last Appointment</h6>
+            </div>
+            <div class="card-body">
+                @if($cooldownInfo['last_booking_details'])
+                    <p class="mb-1"><strong>Department:</strong><br>{{ $cooldownInfo['last_booking_details']['department'] }}</p>
+                    <p class="mb-1"><strong>Date:</strong><br>{{ $cooldownInfo['last_booking_details']['date'] }}</p>
+                    <p class="mb-0"><strong>Time:</strong><br>{{ $cooldownInfo['last_booking_details']['time'] }}</p>
+                @endif
+            </div>
+        </div>
+        @endif
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    const departmentSelect = $('#department_id');
+    const dateInput = $('#booking_date');
+    const timeSlotSelect = $('#time_slot');
+    const slotLoading = $('#slot-loading');
+    const slotInfo = $('#slot-info');
+    const submitBtn = $('#submitBtn');
+    
+    // Load slots when both department and date are selected
+    function loadSlots() {
+        const departmentId = departmentSelect.val();
+        const date = dateInput.val();
+        
+        if (!departmentId || !date) {
+            timeSlotSelect.prop('disabled', true).html('<option value="">-- Select department and date first --</option>');
+            slotInfo.html('');
+            return;
+        }
+        
+        // Show loading
+        timeSlotSelect.prop('disabled', true).html('<option value="">Loading...</option>');
+        slotLoading.show();
+        slotInfo.html('');
+        submitBtn.prop('disabled', true);
+        
+        // AJAX request
+        $.ajax({
+            url: '{{ route("api.slots.available") }}',
+            method: 'GET',
+            data: {
+                department_id: departmentId,
+                date: date
+            },
+            success: function(response) {
+                slotLoading.hide();
+                
+                if (response.success && response.slots.length > 0) {
+                    // Populate slots
+                    let options = '<option value="">-- Select a time slot --</option>';
+                    response.slots.forEach(function(slot) {
+                        options += `<option value="${slot.time}">${slot.formatted}</option>`;
+                    });
+                    
+                    timeSlotSelect.html(options).prop('disabled', false);
+                    submitBtn.prop('disabled', false);
+                    
+                    // Show info
+                    slotInfo.html(`
+                        <div class="alert alert-success small mb-0">
+                            <i class="bi bi-check-circle"></i>
+                            <strong>${response.available_count}</strong> slots available out of ${response.total_slots}
+                        </div>
+                    `);
+                } else {
+                    timeSlotSelect.html('<option value="">No slots available</option>').prop('disabled', true);
+                    submitBtn.prop('disabled', true);
+                    
+                    slotInfo.html(`
+                        <div class="alert alert-warning small mb-0">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            ${response.message || 'No available slots for this date'}
+                        </div>
+                    `);
+                }
+            },
+            error: function(xhr) {
+                slotLoading.hide();
+                timeSlotSelect.html('<option value="">Error loading slots</option>').prop('disabled', true);
+                submitBtn.prop('disabled', true);
+                
+                let errorMsg = 'Failed to load available slots';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                }
+                
+                slotInfo.html(`
+                    <div class="alert alert-danger small mb-0">
+                        <i class="bi bi-exclamation-circle"></i>
+                        ${errorMsg}
+                    </div>
+                `);
+            }
+        });
+    }
+    
+    // Event listeners
+    departmentSelect.on('change', loadSlots);
+    dateInput.on('change', loadSlots);
+    
+    // Form validation
+    $('#bookingForm').on('submit', function(e) {
+        if (!timeSlotSelect.val()) {
+            e.preventDefault();
+            alert('Please select a time slot');
+            return false;
+        }
+    });
+});
+</script>
+@endpush

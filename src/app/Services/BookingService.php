@@ -1,0 +1,727 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Booking;
+use App\Models\Department;
+use App\Models\GlobalSlotConfig;
+use App\Models\User;
+use App\Mail\BookingApproved;
+use App\Mail\BookingRejected;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+
+class BookingService
+{
+/**
+ * Validate if user is in cooldown period
+ * Rule 2: 14 days from APPOINTMENT DATE, can book on 15th day
+ * Only triggered by APPROVED bookings
+ */
+    public function validateGlobalCooldown(User $user): array
+    {
+    $cooldownInfo = $user->getCooldownInfo();
+
+    if ($cooldownInfo['in_cooldown']) {
+        // Assign formatted date to a temp variable to avoid parse errors
+        $cooldownEndFormatted = $cooldownInfo['cooldown_end']->format('F j, Y');
+
+        return [
+            'valid' => false,
+            'message' => "You are in cooldown period. You can book again on {$cooldownEndFormatted} ({$cooldownInfo['days_remaining']} days remaining).",
+            'cooldown_end' => $cooldownInfo['cooldown_end'],
+            'days_remaining' => $cooldownInfo['days_remaining'],
+        ];
+    }
+
+    return [
+        'valid' => true,
+        'message' => 'No active cooldown.',
+    ];
+}
+
+
+    /**
+     * Validate if user has a pending booking
+     * Rule 3: Only ONE pending booking allowed at a time
+     */
+    public function validatePendingBooking(User $user): array
+    {
+        $pendingBooking = $user->getPendingBooking();
+
+        if ($pendingBooking) {
+            return [
+                'valid' => false,
+                'message' => 'You already have a pending booking. Please wait for approval or cancel it before creating a new one.',
+                'pending_booking' => $pendingBooking,
+            ];
+        }
+
+        return [
+            'valid' => true,
+            'message' => 'No pending bookings.',
+        ];
+    }
+
+    /**
+     * Validate if the requested day is allowed for booking
+     * Rule 5: Default Tuesday & Thursday, configurable
+     */
+    public function validateAllowedDay(Carbon $date): array
+    {
+        $config = GlobalSlotConfig::current();
+        $dayOfWeek = $date->format('l'); // "Monday", "Tuesday", etc.
+
+        if (!$config->isDayAllowed($dayOfWeek)) {
+            $allowedDays = implode(', ', $config->getAllowedDays());
+            return [
+                'valid' => false,
+                'message' => "Bookings are only allowed on: {$allowedDays}. {$dayOfWeek} is not available.",
+                'allowed_days' => $config->getAllowedDays(),
+            ];
+        }
+
+        return [
+            'valid' => true,
+            'message' => 'Day is allowed for booking.',
+        ];
+    }
+
+    /**
+     * Validate department schedule overrides
+     * Rule 6: Department schedule overrides global config
+     */
+    public function validateDepartmentSchedule(Department $department, Carbon $date): array
+    {
+        // Check if department is active
+        if (!$department->is_active) {
+            return [
+                'valid' => false,
+                'message' => 'This department is currently inactive.',
+            ];
+        }
+
+        // Check for closures
+        $closureReason = $department->hasClosureOn($date);
+        if ($closureReason !== false) {
+            return [
+                'valid' => false,
+                'message' => $closureReason,
+            ];
+        }
+
+        // Check if department is available on this date
+        if (!$department->isAvailableOn($date)) {
+            return [
+                'valid' => false,
+                'message' => 'This department is not available on the selected date.',
+            ];
+        }
+
+        return [
+            'valid' => true,
+            'message' => 'Department is available.',
+        ];
+    }
+
+    /**
+     * Validate slot availability
+     * Rule 1: Check pool-specific availability (pharmacy vs non-pharmacy)
+     */
+    public function validateSlotAvailability(Department $department, Carbon $date, string $timeSlot): array
+    {
+        $isPharmacy = $department->is_pharmacy_department;
+
+        // Get all bookings for this time slot on this date
+        $query = Booking::where('booking_date', $date->format('Y-m-d'))
+            ->where('time_slot', $timeSlot)
+            ->whereIn('status', ['pending', 'approved']);
+
+        if ($isPharmacy) {
+            // Pharmacy pool: Check only pharmacy department bookings
+            $query->whereHas('department', function($q) {
+                $q->where('is_pharmacy_department', true);
+            });
+        } else {
+            // Non-pharmacy pool: Check all non-pharmacy department bookings
+            $query->whereHas('department', function($q) {
+                $q->where('is_pharmacy_department', false);
+            });
+        }
+
+        $existingBooking = $query->first();
+
+        if ($existingBooking) {
+            $poolName = $isPharmacy ? 'pharmacy' : 'non-pharmacy';
+            return [
+                'valid' => false,
+                'message' => "This time slot is already booked in the {$poolName} pool.",
+            ];
+        }
+
+        return [
+            'valid' => true,
+            'message' => 'Time slot is available.',
+        ];
+    }
+
+    /**
+     * Validate daily limits
+     * Rule 1: 20 non-pharmacy slots/day, 10 pharmacy slots/day
+     */
+    public function validateDailyLimits(Department $department, Carbon $date): array
+    {
+        $config = GlobalSlotConfig::current();
+        $isPharmacy = $department->is_pharmacy_department;
+
+        $query = Booking::where('booking_date', $date->format('Y-m-d'))
+            ->whereIn('status', ['pending', 'approved']);
+
+        if ($isPharmacy) {
+            // Count pharmacy bookings
+            $query->whereHas('department', function($q) {
+                $q->where('is_pharmacy_department', true);
+            });
+            $limit = $config->pharmacy_daily_limit;
+            $poolName = 'pharmacy';
+        } else {
+            // Count non-pharmacy bookings
+            $query->whereHas('department', function($q) {
+                $q->where('is_pharmacy_department', false);
+            });
+            $limit = $config->non_pharmacy_daily_limit;
+            $poolName = 'non-pharmacy';
+        }
+
+        $bookedCount = $query->count();
+
+        if ($bookedCount >= $limit) {
+            return [
+                'valid' => false,
+                'message' => "Daily limit reached for {$poolName} departments ({$bookedCount}/{$limit} slots used).",
+                'booked' => $bookedCount,
+                'limit' => $limit,
+            ];
+        }
+
+        return [
+            'valid' => true,
+            'message' => 'Within daily limits.',
+            'booked' => $bookedCount,
+            'limit' => $limit,
+            'available' => $limit - $bookedCount,
+        ];
+    }
+
+    /**
+     * Run all validations for creating a booking
+     */
+    public function validateBookingCreation(User $user, Department $department, Carbon $date, string $timeSlot): array
+    {
+        // Validate cooldown (Rule 2)
+        $cooldownCheck = $this->validateGlobalCooldown($user);
+        if (!$cooldownCheck['valid']) {
+            return $cooldownCheck;
+        }
+
+        // Validate pending booking (Rule 3)
+        $pendingCheck = $this->validatePendingBooking($user);
+        if (!$pendingCheck['valid']) {
+            return $pendingCheck;
+        }
+
+        // Validate allowed day (Rule 5)
+        $dayCheck = $this->validateAllowedDay($date);
+        if (!$dayCheck['valid']) {
+            return $dayCheck;
+        }
+
+        // Validate department schedule (Rule 6)
+        $scheduleCheck = $this->validateDepartmentSchedule($department, $date);
+        if (!$scheduleCheck['valid']) {
+            return $scheduleCheck;
+        }
+
+        // Validate daily limits (Rule 1)
+        $limitCheck = $this->validateDailyLimits($department, $date);
+        if (!$limitCheck['valid']) {
+            return $limitCheck;
+        }
+
+        // Validate slot availability (Rule 1)
+        $slotCheck = $this->validateSlotAvailability($department, $date, $timeSlot);
+        if (!$slotCheck['valid']) {
+            return $slotCheck;
+        }
+
+        return [
+            'valid' => true,
+            'message' => 'All validations passed.',
+        ];
+    }
+
+    /**
+     * Create a new booking
+     * Uses database transaction and creates audit log
+     */
+    public function createBooking(User $user, Department $department, Carbon $date, string $timeSlot): array
+    {
+        try {
+            // Run all validations
+            $validation = $this->validateBookingCreation($user, $department, $date, $timeSlot);
+            if (!$validation['valid']) {
+                return [
+                    'success' => false,
+                    'message' => $validation['message'],
+                    'errors' => $validation,
+                ];
+            }
+
+            // Create booking with transaction and row locking
+            DB::beginTransaction();
+
+            // Double-check slot availability with row lock
+            $existingBooking = Booking::where('booking_date', $date->format('Y-m-d'))
+                ->where('time_slot', $timeSlot)
+                ->where('department_id', $department->id)
+                ->whereIn('status', ['pending', 'approved'])
+                ->lockForUpdate()
+                ->first();
+
+            if ($existingBooking) {
+                DB::rollBack();
+                return [
+                    'success' => false,
+                    'message' => 'This time slot was just booked by another user. Please select a different slot.',
+                ];
+            }
+
+            // Create the booking
+            $booking = Booking::create([
+                'user_id' => $user->id,
+                'department_id' => $department->id,
+                'booking_date' => $date->format('Y-m-d'),
+                'time_slot' => $timeSlot,
+                'status' => 'pending',
+            ]);
+
+            // Create audit log
+            AuditLogService::log(
+                $booking,
+                'created',
+                null,
+                $booking->toArray(),
+                [
+                    'department_name' => $department->name,
+                    'user_name' => $user->name,
+                ]
+            );
+
+            DB::commit();
+
+            return [
+                'success' => true,
+                'message' => 'Booking created successfully. Waiting for admin approval.',
+                'booking' => $booking->load('department'),
+            ];
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Booking creation failed', [
+                'user_id' => $user->id,
+                'department_id' => $department->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'An error occurred while creating the booking. Please try again.',
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Approve a booking
+     * Rule 2: Starts cooldown from appointment date
+     * ✅ SENDS EMAIL NOTIFICATION
+     */
+    public function approveBooking(Booking $booking, User $admin): array
+    {
+        try {
+            DB::beginTransaction();
+
+            $oldValues = $booking->toArray();
+
+            $booking->update([
+                'status' => 'approved',
+                'approved_by' => $admin->id,
+                'approved_at' => now(),
+            ]);
+
+            // Create audit log
+            AuditLogService::log(
+                $booking,
+                'approved',
+                $oldValues,
+                $booking->toArray(),
+                [
+                    'approved_by_name' => $admin->name,
+                    'representative_name' => $booking->user->name,
+                ]
+            );
+
+            DB::commit();
+
+            // ✅ Send approval email
+            try {
+                Mail::to($booking->user->email)->send(new BookingApproved($booking));
+            } catch (\Exception $e) {
+                Log::error('Failed to send booking approval email', [
+                    'booking_id' => $booking->id,
+                    'user_email' => $booking->user->email,
+                    'error' => $e->getMessage(),
+                ]);
+                // Don't fail the approval if email fails
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Booking approved successfully. Cooldown period will start from the appointment date.',
+                'booking' => $booking->load(['user', 'department', 'approver']),
+            ];
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Booking approval failed', [
+                'booking_id' => $booking->id,
+                'admin_id' => $admin->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'An error occurred while approving the booking.',
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Reject a booking
+     * Rule 2: Rejected bookings do NOT trigger cooldown
+     * ✅ SENDS EMAIL NOTIFICATION
+     */
+    public function rejectBooking(Booking $booking, User $admin, string $reason): array
+    {
+        try {
+            DB::beginTransaction();
+
+            $oldValues = $booking->toArray();
+
+            $booking->update([
+                'status' => 'rejected',
+                'rejection_reason' => $reason,
+            ]);
+
+            // Create audit log
+            AuditLogService::log(
+                $booking,
+                'rejected',
+                $oldValues,
+                $booking->toArray(),
+                [
+                    'rejected_by' => $admin->name,
+                    'representative_name' => $booking->user->name,
+                    'reason' => $reason,
+                ]
+            );
+
+            DB::commit();
+
+            // ✅ Send rejection email
+            try {
+                Mail::to($booking->user->email)->send(new BookingRejected($booking, $reason));
+            } catch (\Exception $e) {
+                Log::error('Failed to send booking rejection email', [
+                    'booking_id' => $booking->id,
+                    'user_email' => $booking->user->email,
+                    'error' => $e->getMessage(),
+                ]);
+                // Don't fail the rejection if email fails
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Booking rejected. Representative can book again immediately.',
+                'booking' => $booking->load(['user', 'department']),
+            ];
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Booking rejection failed', [
+                'booking_id' => $booking->id,
+                'admin_id' => $admin->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'An error occurred while rejecting the booking.',
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Cancel a booking (Admin only for approved bookings)
+     * Rule 4: Cancelled approved bookings REMOVE cooldown
+     * ✅ SENDS EMAIL NOTIFICATION
+     */
+    public function cancelBooking(Booking $booking, User $canceller, string $reason): array
+    {
+        try {
+            // Validate cancellation rights
+            if (!$booking->canBeCancelledByAdmin()) {
+                return [
+                    'success' => false,
+                    'message' => 'This booking cannot be cancelled.',
+                ];
+            }
+
+            DB::beginTransaction();
+
+            $oldValues = $booking->toArray();
+
+            $booking->update([
+                'status' => 'cancelled',
+                'cancellation_reason' => $reason,
+                'cancelled_by' => $canceller->id,
+                'cancelled_at' => now(),
+            ]);
+
+            // Create audit log
+            AuditLogService::log(
+                $booking,
+                'cancelled',
+                $oldValues,
+                $booking->toArray(),
+                [
+                    'cancelled_by_name' => $canceller->name,
+                    'representative_name' => $booking->user->name,
+                    'reason' => $reason,
+                    'was_approved' => $oldValues['status'] === 'approved',
+                ]
+            );
+
+            DB::commit();
+
+            // ✅ Send cancellation email
+            try {
+                Mail::to($booking->user->email)->send(new BookingRejected($booking, $reason));
+            } catch (\Exception $e) {
+                Log::error('Failed to send booking cancellation email', [
+                    'booking_id' => $booking->id,
+                    'user_email' => $booking->user->email,
+                    'error' => $e->getMessage(),
+                ]);
+                // Don't fail the cancellation if email fails
+            }
+
+            $message = 'Booking cancelled successfully.';
+            if ($oldValues['status'] === 'approved') {
+                $message .= ' Cooldown period has been removed.';
+            }
+
+            return [
+                'success' => true,
+                'message' => $message,
+                'booking' => $booking->load(['user', 'department', 'canceller']),
+            ];
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Booking cancellation failed', [
+                'booking_id' => $booking->id,
+                'canceller_id' => $canceller->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'An error occurred while cancelling the booking.',
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Cancel pending booking (Representative self-cancel)
+     * Rule 3: Representatives can only cancel PENDING bookings
+     */
+    public function cancelPendingBooking(Booking $booking, User $representative, string $reason): array
+    {
+        try {
+            // Validate ownership and status
+            if ($booking->user_id !== $representative->id) {
+                return [
+                    'success' => false,
+                    'message' => 'You can only cancel your own bookings.',
+                ];
+            }
+
+            if (!$booking->canBeCancelledByRepresentative()) {
+                return [
+                    'success' => false,
+                    'message' => 'You can only cancel pending bookings. Approved bookings must be cancelled by an administrator.',
+                ];
+            }
+
+            DB::beginTransaction();
+
+            $oldValues = $booking->toArray();
+
+            $booking->update([
+                'status' => 'cancelled',
+                'cancellation_reason' => $reason,
+                'cancelled_by' => $representative->id,
+                'cancelled_at' => now(),
+            ]);
+
+            // Create audit log
+            AuditLogService::log(
+                $booking,
+                'self_cancelled',
+                $oldValues,
+                $booking->toArray(),
+                [
+                    'representative_name' => $representative->name,
+                    'reason' => $reason,
+                ]
+            );
+
+            DB::commit();
+
+            return [
+                'success' => true,
+                'message' => 'Your pending booking has been cancelled. You can now create a new booking.',
+                'booking' => $booking->load('department'),
+            ];
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Pending booking cancellation failed', [
+                'booking_id' => $booking->id,
+                'representative_id' => $representative->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'An error occurred while cancelling your booking.',
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Get available time slots for a department on a specific date
+     */
+    public function getAvailableSlots(Department $department, Carbon $date): array
+    {
+        try {
+            // First run basic validations
+            $dayCheck = $this->validateAllowedDay($date);
+            if (!$dayCheck['valid']) {
+                return [
+                    'success' => false,
+                    'message' => $dayCheck['message'],
+                    'slots' => [],
+                ];
+            }
+
+            $scheduleCheck = $this->validateDepartmentSchedule($department, $date);
+            if (!$scheduleCheck['valid']) {
+                return [
+                    'success' => false,
+                    'message' => $scheduleCheck['message'],
+                    'slots' => [],
+                ];
+            }
+
+            // Get config and generate time slots
+            $config = GlobalSlotConfig::current();
+            $isPharmacy = $department->is_pharmacy_department;
+
+// Check if there's an override schedule with custom times
+$overrideSchedule = $department->getOverrideScheduleFor($date);
+
+if ($overrideSchedule && $overrideSchedule->hasCustomTimes()) {
+    // Use override times
+    $allSlots = $config->generateTimeSlots(
+        $overrideSchedule->override_start_time,
+        $overrideSchedule->override_end_time
+    );
+} else {
+    // Use global config times
+    $allSlots = $isPharmacy
+        ? $config->getPharmacyTimeSlots()
+        : $config->getNonPharmacyTimeSlots();
+}
+
+
+            // Get booked slots
+            $query = Booking::where('booking_date', $date->format('Y-m-d'))
+                ->whereIn('status', ['pending', 'approved']);
+
+            if ($isPharmacy) {
+                $query->whereHas('department', function($q) {
+                    $q->where('is_pharmacy_department', true);
+                });
+            } else {
+                $query->whereHas('department', function($q) {
+                    $q->where('is_pharmacy_department', false);
+                });
+            }
+
+            $bookedSlots = $query->pluck('time_slot')->toArray();
+
+            // Mark all slots as available or occupied (don't filter them out)
+            $availableSlots = array_map(function($slot) use ($bookedSlots) {
+               $slot['is_available'] = !in_array($slot['time'], $bookedSlots);
+               return $slot;
+             }, $allSlots);
+
+            // Get limits info
+            $limitCheck = $this->validateDailyLimits($department, $date);
+
+            return [
+                'success' => true,
+                'message' => count($availableSlots) > 0
+                    ? 'Available slots found.'
+                    : 'No available slots for this date.',
+                'slots' => array_values($availableSlots),
+                'total_slots' => count($allSlots),
+                'available_count' => count($availableSlots),
+                'booked_count' => $limitCheck['booked'] ?? 0,
+                'limit' => $limitCheck['limit'] ?? 0,
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Get available slots failed', [
+                'department_id' => $department->id,
+                'date' => $date->format('Y-m-d'),
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'An error occurred while fetching available slots.',
+                'slots' => [],
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+}

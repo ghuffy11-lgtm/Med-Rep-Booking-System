@@ -1,0 +1,250 @@
+@extends('layouts.app')
+
+@section('title', 'Representative Dashboard')
+@section('page-title', 'Dashboard')
+
+@section('sidebar-menu')
+    <a href="{{ route('rep.dashboard') }}" class="nav-link active">
+        <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+    <a href="{{ route('rep.bookings.index') }}" class="nav-link">
+        <i class="bi bi-calendar-check"></i> My Bookings
+    </a>
+    <a href="{{ route('rep.bookings.create') }}" class="nav-link">
+        <i class="bi bi-plus-circle"></i> New Booking
+    </a>
+    <a href="{{ route('rep.bookings.history') }}" class="nav-link">
+        <i class="bi bi-clock-history"></i> History
+    </a>
+    <a href="{{ route('rep.profile.edit') }}" class="nav-link">
+        <i class="bi bi-person-circle"></i> My Profile
+    </a>
+@endsection
+
+@section('content')
+<!-- Cooldown Status Card -->
+@if($cooldownInfo['in_cooldown'])
+<div class="card border-warning">
+    <div class="card-body">
+        <div class="d-flex align-items-center">
+            <div class="flex-shrink-0">
+                <i class="bi bi-clock-history text-warning" style="font-size: 3rem;"></i>
+            </div>
+            <div class="flex-grow-1 ms-3">
+                <h5 class="card-title text-warning mb-2">
+                    <i class="bi bi-exclamation-triangle"></i> Cooldown Period Active
+                </h5>
+                <p class="card-text mb-2">{{ $cooldownInfo['message'] }}</p>
+                @if(isset($cooldownInfo['cooldown_end']) && $cooldownInfo['cooldown_end'])
+                    <p class="mb-0">
+                        <strong>You can book again on:</strong> 
+                        <span class="badge bg-warning text-dark">
+                            {{ $cooldownInfo['cooldown_end']->format('l, F j, Y') }}
+                        </span>
+                        ({{ $cooldownInfo['days_remaining'] ?? 0 }} days remaining)
+                    </p>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+@else
+<div class="card border-success">
+    <div class="card-body">
+        <div class="d-flex align-items-center">
+            <div class="flex-shrink-0">
+                <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+            </div>
+            <div class="flex-grow-1 ms-3">
+                <h5 class="card-title text-success mb-2">
+                    <i class="bi bi-calendar-plus"></i> Ready to Book
+                </h5>
+                <p class="card-text mb-2">You are not in cooldown period and can create a new booking.</p>
+                <a href="{{ route('rep.bookings.create') }}" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> Create New Booking
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
+<!-- Pending Booking Alert -->
+@if($pendingBooking)
+<div class="card border-info mt-3">
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="flex-grow-1">
+                <h5 class="card-title text-info mb-2">
+                    <i class="bi bi-hourglass-split"></i> Pending Booking
+                </h5>
+                <p class="mb-2">
+                    <strong>Department:</strong> {{ $pendingBooking->department->name }}<br>
+                    <strong>Date:</strong> {{ $pendingBooking->formatted_date }}<br>
+                    <strong>Time:</strong> {{ $pendingBooking->formatted_time_slot }}
+                </p>
+            </div>
+            <div>
+                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal{{ $pendingBooking->id }}">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Modal -->
+<div class="modal fade" id="cancelModal{{ $pendingBooking->id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancel Booking</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('rep.bookings.cancel', $pendingBooking) }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <p>Are you sure you want to cancel this booking?</p>
+                    <div class="mb-3">
+                        <label for="cancellation_reason" class="form-label">Cancellation Reason *</label>
+                        <textarea class="form-control" id="cancellation_reason" name="cancellation_reason" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger">Cancel Booking</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+
+<!-- Statistics Cards -->
+<div class="row mt-3">
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="card-subtitle mb-2">Total Bookings</h6>
+                        <h2 class="mb-0">{{ $stats['total_bookings'] }}</h2>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-calendar3" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="card-subtitle mb-2">Approved</h6>
+                        <h2 class="mb-0">{{ $stats['approved'] }}</h2>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-check-circle" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="card-subtitle mb-2">Pending</h6>
+                        <h2 class="mb-0">{{ $stats['pending'] }}</h2>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-hourglass-split" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="card-subtitle mb-2">Rejected</h6>
+                        <h2 class="mb-0">{{ $stats['rejected'] }}</h2>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-x-circle" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Bookings -->
+@if($upcomingBookings->count() > 0)
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-calendar-event"></i> Upcoming Appointments</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Department</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th>Days Until</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($upcomingBookings as $booking)
+                    <tr>
+                        <td>
+                            <i class="bi bi-hospital"></i>
+                            {{ $booking->department->name }}
+                        </td>
+                        <td>{{ $booking->formatted_date }}</td>
+                        <td>{{ $booking->formatted_time_slot }}</td>
+                        <td>
+                            <span class="badge bg-{{ $booking->status_color }}">
+                                {{ $booking->status_text }}
+                            </span>
+                        </td>
+                        <td>
+                            @if($booking->days_until_appointment >= 0)
+                                {{ $booking->days_until_appointment }} days
+                            @else
+                                Today
+                            @endif
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@else
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-calendar-x text-muted" style="font-size: 4rem;"></i>
+        <h5 class="mt-3 text-muted">No Upcoming Appointments</h5>
+        <p class="text-muted">You don't have any approved bookings scheduled.</p>
+        @if(!$cooldownInfo['in_cooldown'])
+        <a href="{{ route('rep.bookings.create') }}" class="btn btn-primary mt-2">
+            <i class="bi bi-plus-circle"></i> Create Your First Booking
+        </a>
+        @endif
+    </div>
+</div>
+@endif
+@endsection

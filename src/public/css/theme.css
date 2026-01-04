@@ -1,0 +1,333 @@
+/**
+ * Pharmacy Booking System - Theme Configuration
+ * 
+ * Change colors here to update the entire application theme!
+ * All colors use CSS variables for easy customization.
+ */
+
+:root {
+    /* ========================================
+       PRIMARY BRAND COLORS
+       ======================================== */
+    
+    /* Main brand color (blue) */
+    --primary-color: #4e73df;
+    --primary-dark: #224abe;
+    --primary-light: #6c8cef;
+    --primary-lighter: #8fa9f3;
+    
+    /* Primary gradient (used in sidebars, headers, buttons) */
+    --primary-gradient: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    
+    /* Hover states */
+    --primary-hover: #3a5fc9;
+    --primary-active: #2e4fa0;
+    
+    /* ========================================
+       SEMANTIC COLORS
+       ======================================== */
+    
+    --success-color: #28a745;
+    --success-dark: #1e7e34;
+    --success-light: #d4edda;
+    
+    --danger-color: #dc3545;
+    --danger-dark: #c82333;
+    --danger-light: #f8d7da;
+    
+    --warning-color: #ffc107;
+    --warning-dark: #e0a800;
+    --warning-light: #fff3cd;
+    
+    --info-color: #17a2b8;
+    --info-dark: #117a8b;
+    --info-light: #d1ecf1;
+    
+    /* ========================================
+       NEUTRAL COLORS
+       ======================================== */
+    
+    --background-color: #f8f9fa;
+    --background-dark: #e9ecef;
+    --background-light: #ffffff;
+    
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --text-muted: #adb5bd;
+    --text-white: #ffffff;
+    
+    --border-color: #dee2e6;
+    --border-light: #e9ecef;
+    --border-dark: #adb5bd;
+    
+    /* ========================================
+       SIDEBAR COLORS
+       ======================================== */
+    
+    --sidebar-background: var(--primary-gradient);
+    --sidebar-text: rgba(255, 255, 255, 0.8);
+    --sidebar-text-hover: #ffffff;
+    --sidebar-text-active: #ffffff;
+    --sidebar-hover-bg: rgba(255, 255, 255, 0.2);
+    --sidebar-active-bg: rgba(255, 255, 255, 0.25);
+    --sidebar-divider: rgba(255, 255, 255, 0.2);
+    
+    /* ========================================
+       MOBILE MENU
+       ======================================== */
+    
+    --mobile-menu-bg: var(--primary-color);
+    --mobile-menu-text: #ffffff;
+    --mobile-overlay: rgba(0, 0, 0, 0.5);
+    
+    /* ========================================
+       BUTTONS
+       ======================================== */
+    
+    --btn-primary-bg: var(--primary-color);
+    --btn-primary-hover: var(--primary-hover);
+    --btn-primary-active: var(--primary-active);
+    --btn-primary-text: #ffffff;
+    
+    --btn-success-bg: var(--success-color);
+    --btn-success-hover: var(--success-dark);
+    
+    --btn-danger-bg: var(--danger-color);
+    --btn-danger-hover: var(--danger-dark);
+    
+    /* ========================================
+       FORMS
+       ======================================== */
+    
+    --input-border: var(--border-color);
+    --input-focus-border: var(--primary-color);
+    --input-focus-shadow: rgba(78, 115, 223, 0.25);
+    
+    /* ========================================
+       CARDS & PANELS
+       ======================================== */
+    
+    --card-bg: #ffffff;
+    --card-border: var(--border-color);
+    --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    
+    /* ========================================
+       BADGES & TAGS
+       ======================================== */
+    
+    --badge-pending: #ffc107;
+    --badge-approved: #28a745;
+    --badge-rejected: #dc3545;
+    --badge-cancelled: #6c757d;
+    
+    /* ========================================
+       BOTTOM NAVIGATION (MOBILE)
+       ======================================== */
+    
+    --bottom-nav-bg: #ffffff;
+    --bottom-nav-border: var(--border-color);
+    --bottom-nav-text: #6c757d;
+    --bottom-nav-active: var(--primary-color);
+}
+
+/* ========================================
+   APPLY THEME TO COMPONENTS
+   ======================================== */
+
+/* Sidebar */
+.sidebar {
+    background: var(--sidebar-background) !important;
+}
+
+.sidebar .nav-link {
+    color: var(--sidebar-text) !important;
+}
+
+.sidebar .nav-link:hover {
+    background: var(--sidebar-hover-bg) !important;
+    color: var(--sidebar-text-hover) !important;
+}
+
+.sidebar .nav-link.active {
+    background: var(--sidebar-active-bg) !important;
+    color: var(--sidebar-text-active) !important;
+}
+
+.sidebar hr {
+    border-color: var(--sidebar-divider) !important;
+}
+
+/* Mobile Menu Toggle */
+.mobile-menu-toggle {
+    background: var(--mobile-menu-bg) !important;
+    color: var(--mobile-menu-text) !important;
+}
+
+/* Sidebar Overlay */
+.sidebar-overlay {
+    background: var(--mobile-overlay) !important;
+}
+
+/* Primary Buttons */
+.btn-primary {
+    background: var(--btn-primary-bg) !important;
+    border-color: var(--btn-primary-bg) !important;
+    color: var(--btn-primary-text) !important;
+}
+
+.btn-primary:hover {
+    background: var(--btn-primary-hover) !important;
+    border-color: var(--btn-primary-hover) !important;
+}
+
+.btn-primary:active,
+.btn-primary:focus {
+    background: var(--btn-primary-active) !important;
+    border-color: var(--btn-primary-active) !important;
+}
+
+/* Gradient Buttons (Auth pages, etc.) */
+.btn-login,
+.btn-register {
+    background: var(--primary-gradient) !important;
+    border: none !important;
+}
+
+/* Success Buttons */
+.btn-success:hover {
+    background: var(--btn-success-hover) !important;
+}
+
+/* Danger Buttons */
+.btn-danger:hover {
+    background: var(--btn-danger-hover) !important;
+}
+
+/* Form Controls Focus */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--input-focus-border) !important;
+    box-shadow: 0 0 0 0.25rem var(--input-focus-shadow) !important;
+}
+
+/* Auth Page Headers (Login/Register) */
+.login-header,
+.register-header {
+    background: var(--primary-gradient) !important;
+}
+
+/* Cards */
+.card {
+    background: var(--card-bg);
+    border-color: var(--card-border);
+}
+
+/* Status Badges */
+.badge.bg-warning,
+.badge-pending {
+    background-color: var(--badge-pending) !important;
+}
+
+.badge.bg-success,
+.badge-approved {
+    background-color: var(--badge-approved) !important;
+}
+
+.badge.bg-danger,
+.badge-rejected,
+.badge-cancelled {
+    background-color: var(--badge-rejected) !important;
+}
+
+/* Bottom Navigation (Mobile) */
+.rep-mobile-nav-bottom {
+    background: var(--bottom-nav-bg) !important;
+    border-top-color: var(--bottom-nav-border) !important;
+}
+
+.rep-mobile-nav-bottom .nav-link {
+    color: var(--bottom-nav-text) !important;
+}
+
+.rep-mobile-nav-bottom .nav-link.active {
+    color: var(--bottom-nav-active) !important;
+}
+
+/* Links */
+a {
+    color: var(--primary-color);
+}
+
+a:hover {
+    color: var(--primary-hover);
+}
+
+/* ========================================
+   ALTERNATIVE THEME EXAMPLES
+   ======================================== */
+
+/*
+// GREEN THEME - Uncomment to use
+:root {
+    --primary-color: #28a745;
+    --primary-dark: #1e7e34;
+    --primary-light: #48c774;
+    --primary-gradient: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    --primary-hover: #218838;
+    --primary-active: #1e7e34;
+}
+*/
+
+/*
+// PURPLE THEME - Uncomment to use
+:root {
+    --primary-color: #667eea;
+    --primary-dark: #764ba2;
+    --primary-light: #8b9cf7;
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --primary-hover: #5568d3;
+    --primary-active: #4a5cb8;
+}
+*/
+
+/*
+// ORANGE THEME - Uncomment to use
+:root {
+    --primary-color: #fd7e14;
+    --primary-dark: #e8590c;
+    --primary-light: #fd9843;
+    --primary-gradient: linear-gradient(135deg, #fd7e14 0%, #e8590c 100%);
+    --primary-hover: #e8690c;
+    --primary-active: #d15b0a;
+}
+*/
+
+/*
+// TEAL THEME - Uncomment to use
+:root {
+    --primary-color: #20c997;
+    --primary-dark: #17a2b8;
+    --primary-light: #4dd4ac;
+    --primary-gradient: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+    --primary-hover: #1cb386;
+    --primary-active: #189d75;
+}
+*/
+
+/*
+// DARK BLUE THEME - Uncomment to use
+:root {
+    --primary-color: #1e3a8a;
+    --primary-dark: #1e293b;
+    --primary-light: #3b5998;
+    --primary-gradient: linear-gradient(135deg, #1e3a8a 0%, #1e293b 100%);
+    --primary-hover: #1a327a;
+    --primary-active: #162a6a;
+}
+*/
+
+/* Fix pagination arrow overlay issue */
+.pagination svg,
+.pagination .bi-arrow-left,
+.pagination .bi-arrow-right {
+}

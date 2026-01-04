@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Http\Controllers\SuperAdmin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\GlobalConfigUpdateRequest;
+use App\Models\GlobalSlotConfig;
+use App\Services\AuditLogService;
+
+class ConfigController extends Controller
+{
+    public function edit()
+    {
+        $config = GlobalSlotConfig::current();
+        
+        $daysOfWeek = [
+            'Sunday', 'Monday', 'Tuesday', 'Wednesday',
+            'Thursday', 'Friday', 'Saturday'
+        ];
+        
+        return view('super-admin.config.edit', compact('config', 'daysOfWeek'));
+    }
+    
+    public function update(GlobalConfigUpdateRequest $request)
+    {
+        $config = GlobalSlotConfig::current();
+        
+        $oldValues = $config->toArray();
+        
+        $data = $request->validated();
+        $data['updated_by'] = auth()->id();
+        
+        $config->update($data);
+        
+        $newValues = $config->fresh()->toArray();
+        
+        AuditLogService::logConfigChange($config, $oldValues, $newValues);
+        
+        return redirect()->route('super-admin.config.edit')
+            ->with('success', 'System configuration updated successfully. Changes will take effect immediately.');
+    }
+}

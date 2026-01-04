@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Register - Pharmacy Booking System</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="...">
+
+    <!-- hCaptcha -->
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #6c8cef 0%, #224abe 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px; 20px 60px 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .register-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 500px;
+            overflow: hidden;
+	    margin-bottom: 20px;
+        }
+
+        .register-header {
+            background: linear-gradient(135deg, #6c8cef 0%, #224abe 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .register-header h3 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .register-header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 15px;
+        }
+
+        .register-body {
+            padding: 30px 20px;
+        }
+
+        .form-floating {
+            margin-bottom: 20px;
+        }
+
+        .form-control {
+            height: 58px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 12px 16px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-floating > label {
+            padding: 1rem 16px;
+            font-size: 15px;
+            color: #6c757d;
+        }
+
+        .btn-register {
+            width: 100%;
+            height: 58px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #6c8cef 0%, #224abe 100%);
+            border: none;
+            color: white;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-register:active {
+            transform: translateY(0);
+        }
+
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            position: relative;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .login-link {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            margin: 0 -20px 0 -20px;
+            border-radius: 0 0 20px 20px;
+	    border-top: 1px solid #e0e0e0;
+        }
+
+        .login-link a {
+            color: #4e73df;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .alert {
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: none;
+            font-size: 15px;
+        }
+
+        .alert-danger {
+            background: #fee;
+            color: #c33;
+        }
+
+        .invalid-feedback {
+            font-size: 14px;
+            margin-top: 6px;
+        }
+
+        .is-invalid {
+            border-color: #dc3545 !important;
+        }
+
+        /* Mobile specific */
+        @media (max-width: 767.98px) {
+            body {
+                padding: 20px 10px 80px 10px;
+                align-items: flex-start;
+                padding-top: 20px;
+            }
+
+            .register-container {
+                border-radius: 16px;
+            }
+
+            .register-header {
+                padding: 25px 20px;
+            }
+
+            .register-header h3 {
+                font-size: 24px;
+            }
+
+            .register-body {
+                padding: 25px 16px;
+            }
+
+            .form-control {
+                font-size: 16px; /* Prevents iOS zoom */
+            }
+
+            .login-link {
+                margin: 0 -16px 0 -16px;
+	        padding: 25px 20px;
+            }
+        }
+
+        /* Password strength indicator */
+        .password-strength {
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .password-strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s;
+        }
+
+        .strength-weak { width: 33%; background: #dc3545; }
+        .strength-medium { width: 66%; background: #ffc107; }
+        .strength-strong { width: 100%; background: #28a745; }
+
+        /* Loading state */
+        .btn-register:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .spinner-border-sm {
+            width: 1.2rem;
+            height: 1.2rem;
+            border-width: 2px;
+        }
+
+        /* hCaptcha mobile optimization */
+        .h-captcha {
+            margin: 20px 0;
+        }
+
+        @media (max-width: 767.98px) {
+            .h-captcha > div {
+                transform: scale(0.9);
+                transform-origin: 0 0;
+            }
+        }
+
+        /* Input icons */
+        .input-group-icon {
+            position: relative;
+        }
+
+        .input-group-icon i {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            font-size: 20px;
+            z-index: 10;
+        }
+
+        .input-group-icon .form-control {
+            padding-right: 45px;
+        }
+
+	.position-relative {
+        position: relative;
+        }
+
+	#togglePassword, #toggleConfirmPassword {
+        position: absolute;
+        top: 19px;
+        right: 15px;
+        cursor: pointer;
+        font-size: 1.2rem;
+        color: #6c757d;
+        z-index: 10;
+        transition: color 0.2s;
+    }
+
+    #togglePassword:hover, #toggleConfirmPassword:hover {
+        color: #4e73df; /* This uses your theme blue */
+    }
+
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <!-- Header -->
+        <div class="register-header">
+            <i class="bi bi-capsule" style="font-size: 48px; margin-bottom: 10px;"></i>
+            <h3>Create Account</h3>
+            <p>Register as a pharmacy representative</p>
+        </div>
+
+        <!-- Body -->
+        <div class="register-body">
+            <!-- Error Messages -->
+            @if($errors->any())
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Please fix the following errors:</strong>
+                    <ul class="mb-0 mt-2" style="padding-left: 20px;">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <!-- Registration Form -->
+            <form action="{{ route('register') }}" method="POST" id="registerForm">
+                @csrf
+
+                <!-- Full Name -->
+                <div class="form-floating">
+                    <input type="text" 
+                           class="form-control @error('name') is-invalid @enderror" 
+                           id="name" 
+                           name="name" 
+                           value="{{ old('name') }}"
+                           placeholder="Full Name"
+                           required
+                           autofocus>
+                    <label for="name"><i class="bi bi-person"></i> Full Name</label>
+                    @error('name')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <!-- Email -->
+                <div class="form-floating">
+                    <input type="email" 
+                           class="form-control @error('email') is-invalid @enderror" 
+                           id="email" 
+                           name="email" 
+                           value="{{ old('email') }}"
+                           placeholder="Email Address"
+			   inputmode="email"
+		           autocomplete="email"
+                           required>
+                    <label for="email"><i class="bi bi-envelope"></i> Email Address</label>
+                    @error('email')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <!-- Company -->
+                <div class="form-floating">
+                    <input type="text" 
+                           class="form-control @error('company') is-invalid @enderror" 
+                           id="company" 
+                           name="company" 
+                           value="{{ old('company') }}"
+                           placeholder="Company Name"
+                           required>
+                    <label for="company"><i class="bi bi-building"></i> Company Name</label>
+                    @error('company')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <!-- Civil ID -->
+                <div class="form-floating">
+                    <input type="text" 
+                           class="form-control @error('civil_id') is-invalid @enderror" 
+                           id="civil_id" 
+                           name="civil_id" 
+                           value="{{ old('civil_id') }}"
+                           placeholder="Civil ID (12 digits)"
+			   inputmode="numeric"
+                           pattern="[0-9]{12}"
+                           maxlength="12"
+                           required>
+                    <label for="civil_id"><i class="bi bi-credit-card"></i> Civil ID (12 digits)</label>
+                    @error('civil_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <small class="text-muted" style="font-size: 13px; display: block; margin-top: 6px;">
+                        Enter exactly 12 digits (numbers only)
+                    </small>
+                </div>
+
+                <!-- Password -->
+                <div class="form-floating">
+                    <input type="password" 
+                           class="form-control @error('password') is-invalid @enderror" 
+                           id="password" 
+                           name="password" 
+                           placeholder="Password"
+                           required>
+                    <label for="password"><i class="bi bi-lock"></i> Password</label>
+                    @error('password')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div class="password-strength">
+                        <div class="password-strength-bar" id="strengthBar"></div>
+                    </div>
+                    <small class="text-muted" style="font-size: 13px; display: block; margin-top: 6px;">
+                        Minimum 8 characters
+                    </small>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="form-floating">
+                    <input type="password" 
+                           class="form-control" 
+                           id="password_confirmation" 
+                           name="password_confirmation" 
+                           placeholder="Confirm Password"
+                           required>
+                    <label for="password_confirmation"><i class="bi bi-lock-fill"></i> Confirm Password</label>
+                </div>
+
+                <!-- hCaptcha -->
+                <div class="h-captcha" 
+                     data-sitekey="{{ config('services.hcaptcha.site_key') }}"
+                     data-theme="light"></div>
+                @error('h-captcha-response')
+                    <div class="text-danger" style="font-size: 14px; margin-top: -10px; margin-bottom: 15px;">
+                        {{ $message }}
+                    </div>
+                @enderror
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-register" id="submitBtn">
+                    <span id="btnText">
+                        <i class="bi bi-person-plus"></i> Create Account
+                    </span>
+                    <span id="btnLoading" style="display: none;">
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                        Creating Account...
+                    </span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Login Link -->
+        <div class="login-link">
+            Already have an account? <a href="{{ route('login') }}">Login here</a>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Password strength indicator
+        const passwordInput = document.getElementById('password');
+        const strengthBar = document.getElementById('strengthBar');
+
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            let strength = 0;
+
+            if (password.length >= 8) strength++;
+            if (password.length >= 12) strength++;
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^a-zA-Z0-9]/.test(password)) strength++;
+
+            strengthBar.className = 'password-strength-bar';
+            
+            if (strength <= 2) {
+                strengthBar.classList.add('strength-weak');
+            } else if (strength <= 4) {
+                strengthBar.classList.add('strength-medium');
+            } else {
+                strengthBar.classList.add('strength-strong');
+            }
+        });
+
+        // Civil ID validation - only numbers
+        const civilIdInput = document.getElementById('civil_id');
+        civilIdInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            if (this.value.length > 12) {
+                this.value = this.value.slice(0, 12);
+            }
+        });
+
+        // Form submission loading state
+        const form = document.getElementById('registerForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const btnLoading = document.getElementById('btnLoading');
+
+        form.addEventListener('submit', function(e) {
+            // Check if hCaptcha is completed
+            const hcaptchaResponse = document.querySelector('[name="h-captcha-response"]');
+            if (!hcaptchaResponse || !hcaptchaResponse.value) {
+                e.preventDefault();
+                alert('Please complete the CAPTCHA verification');
+                return false;
+            }
+
+            // Show loading state
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline';
+        });
+
+        // Password match validation
+        const passwordConfirmation = document.getElementById('password_confirmation');
+        passwordConfirmation.addEventListener('input', function() {
+            if (this.value !== passwordInput.value) {
+                this.setCustomValidity('Passwords do not match');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+
+        // Auto-focus on first error field
+        document.addEventListener('DOMContentLoaded', function() {
+            const firstError = document.querySelector('.is-invalid');
+            if (firstError) {
+                firstError.focus();
+            }
+        });
+    </script>
+</body>
+</html>

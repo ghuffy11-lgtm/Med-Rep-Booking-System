@@ -1,0 +1,10 @@
+/* Fix pagination arrow overlay issue */
+.pagination svg,
+.pagination .bi-arrow-left,
+.pagination .bi-arrow-right {
+    display: inline;
+    width: 1em;
+    height: 1em;
+    position: static;
+    transform: none;
+}
