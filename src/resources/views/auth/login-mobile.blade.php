@@ -22,6 +22,7 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
+	    padding-bottom: 40px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
@@ -157,7 +158,7 @@
 
         .register-link {
             text-align: center;
-            padding: 20px;
+            padding: 20px 20px 30px 20px;
             background: #f8f9fa;
             margin: 0 -25px -35px -25px;
             border-radius: 0 0 20px 20px;
@@ -280,7 +281,7 @@
     <div class="login-container">
         <!-- Header -->
         <div class="login-header">
-            <i class="bi bi-capsule"></i>
+    <img src="{{ asset('images/logo.svg') }}" alt="System Logo" style="width: 80px; height: 80px; margin-bottom: 15px; object-fit: contain;">
             <h3>Welcome Back</h3>
             <p>Login to access your bookings</p>
         </div>

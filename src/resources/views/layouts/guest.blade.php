@@ -148,9 +148,9 @@
     <div class="auth-container">
         <div class="auth-card">
             <div class="auth-header">
-                <div class="logo-icon">
-                    <i class="bi bi-hospital"></i>
-                </div>
+		<div class="logo-icon">
+		    <img src="{{ asset('images/logo.svg') }}" alt="System Logo" style="width: 80px; height: 80px; object-fit: contain;">
+		</div>
                 <h3>@yield('header-title', 'Pharmacy Booking')</h3>
                 <p>@yield('header-subtitle', 'Representative Appointment System')</p>
             </div>
