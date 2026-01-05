@@ -209,7 +209,15 @@
                             <small class="text-muted">{{ $booking->formatted_time_slot }}</small>
                         </td>
                         <td>
-                            <span class="badge bg-{{ $booking->status_color }}">
+			@if($booking->status === 'pending')
+                                <span class="badge bg-warning text-dark">
+                            @elseif($booking->status === 'approved')
+                                <span class="badge bg-success">
+                            @elseif($booking->status === 'rejected')
+                                <span class="badge bg-danger">
+                            @else
+                                <span class="badge bg-secondary">
+                            @endif
                                 {{ $booking->status_text }}
                             </span>
                         </td>

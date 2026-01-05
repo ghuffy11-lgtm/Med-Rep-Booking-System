@@ -109,6 +109,48 @@
                         <small class="text-muted">Leave unchecked to use global allowed days</small>
                     </div>
                     
+                    <div class="mb-4" id="overrideTimesSection">
+                        <h6 class="border-bottom pb-2 mb-3">
+                            <i class="bi bi-clock"></i> Custom Working Hours (Optional)
+                        </h6>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> 
+                            If specified, these custom hours will be used instead of the global config times during this schedule period.
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="override_start_time" class="form-label">
+                                    Override Start Time
+                                    <small class="text-muted d-block">Leave blank to use global config</small>
+                                </label>
+                                <input type="time" 
+                                       class="form-control @error('override_start_time') is-invalid @enderror" 
+                                       id="override_start_time" 
+                                       name="override_start_time"
+                                       value="{{ old('override_start_time') }}">
+                                @error('override_start_time')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="override_end_time" class="form-label">
+                                    Override End Time
+                                    <small class="text-muted d-block">Leave blank to use global config</small>
+                                </label>
+                                <input type="time" 
+                                       class="form-control @error('override_end_time') is-invalid @enderror" 
+                                       id="override_end_time" 
+                                       name="override_end_time"
+                                       value="{{ old('override_end_time') }}">
+                                @error('override_end_time')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
                     <div class="mb-4">
                         <label for="notes" class="form-label">Notes</label>
                         <textarea class="form-control @error('notes') is-invalid @enderror" id="notes" name="notes" rows="3" placeholder="e.g., Renovation, Holiday, etc.">{{ old('notes') }}</textarea>
@@ -156,6 +198,12 @@
                     <li>Overrides global settings temporarily</li>
                     <li>Useful for special schedules</li>
                 </ul>
+                <p class="small mb-2"><strong>Custom Working Hours:</strong></p>
+                <ul class="small mb-0">
+                    <li>Optional custom start/end times</li>
+                    <li>Example: Ramadan hours 8 AM - 2 PM</li>
+                    <li>Overrides global working hours</li>
+                </ul>
             </div>
         </div>
     </div>
@@ -168,8 +216,10 @@ $(document).ready(function() {
     function toggleOverrideDays() {
         if ($('#closure').is(':checked')) {
             $('#overrideDaysSection').hide();
+            $('#overrideTimesSection').hide();
         } else {
             $('#overrideDaysSection').show();
+            $('#overrideTimesSection').show();
         }
     }
     

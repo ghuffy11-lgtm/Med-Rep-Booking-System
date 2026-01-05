@@ -77,8 +77,20 @@
                             {{ \Carbon\Carbon::parse($schedule->end_date)->format('M d, Y') }}
                         </td>
                         <td>
-                            @if(!$schedule->is_closed && $schedule->override_days)
-                            {{ implode(', ', $schedule->override_days ?? []) }}
+			@if(!$schedule->is_closed && $schedule->override_days)
+                            <span class="badge bg-info">{{ implode(', ', $schedule->override_days ?? []) }}</span>
+                            
+                            @if($schedule->override_start_time && $schedule->override_end_time)
+                                <br>
+                                <small class="text-muted">
+                                    <i class="bi bi-clock"></i> 
+                                    {{ \Carbon\Carbon::parse($schedule->override_start_time)->format('g:i A') }} - 
+                                    {{ \Carbon\Carbon::parse($schedule->override_end_time)->format('g:i A') }}
+                                </small>
+                            @else
+                                <br>
+                                <small class="text-muted"><i class="bi bi-clock"></i> Uses global times</small>
+                            @endif
                             @else
                                 <span class="text-muted">—</span>
                             @endif

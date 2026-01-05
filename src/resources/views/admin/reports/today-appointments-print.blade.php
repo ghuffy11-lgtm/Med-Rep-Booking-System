@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Today's Appointments - {{ $today->format('Y-m-d') }}</title>
+<title>Appointments Report - {{ $fromDate->format('Y-m-d') }} to {{ $toDate->format('Y-m-d') }}</title>
     <style>
         @page {
             size: A4 landscape;
@@ -157,7 +157,11 @@
 <body>
     <div class="header">
         <h1>Med. Rep. Appointment System</h1>
-        <h2>Today's Appointments Report - {{ $today->format('l, F j, Y') }}</h2>
+        @if($fromDate->eq($toDate))
+            <h2>Appointments Report - {{ $fromDate->format('l, F j, Y') }}</h2>
+        @else
+            <h2>Appointments Report - {{ $fromDate->format('M j, Y') }} to {{ $toDate->format('M j, Y') }}</h2>
+        @endif
     </div>
     
     <div class="stats">
@@ -180,30 +184,24 @@
         <thead>
             <tr>
                 <th style="width: 5%;">#</th>
+                <th style="width: 12%;">Date</th>
                 <th style="width: 10%;">Time</th>
                 <th style="width: 25%;">Representative Name</th>
                 <th style="width: 20%;">Company</th>
                 <th style="width: 20%;">Department</th>
                 <th style="width: 15%;">Contact</th>
-                <th style="width: 5%;">Type</th>
             </tr>
         </thead>
         <tbody>
             @foreach($appointments as $index => $appointment)
             <tr>
                 <td>{{ $index + 1 }}</td>
+                <td><strong>{{ \Carbon\Carbon::parse($appointment->booking_date)->format('M j, Y') }}</strong></td>
                 <td><strong>{{ \Carbon\Carbon::parse($appointment->time_slot)->format('g:i A') }}</strong></td>
                 <td><strong>{{ $appointment->user->name }}</strong></td>
                 <td>{{ $appointment->user->company }}</td>
                 <td>{{ $appointment->department->name }}</td>
                 <td>{{ $appointment->user->email }}</td>
-                <td>
-                    @if($appointment->department->is_pharmacy_department)
-                        <span class="badge badge-pharmacy">Pharmacy</span>
-                    @else
-                        <span class="badge badge-clinical">Clinical</span>
-                    @endif
-                </td>
             </tr>
             @endforeach
         </tbody>
@@ -215,11 +213,6 @@
         <p>There are no approved appointments scheduled for today.</p>
     </div>
     @endif
-    
-    <div class="footer">
-        <p>Report generated on {{ now()->format('F j, Y g:i A') }} by {{ auth()->user()->name }}</p>
-        <p>&copy; {{ date('Y') }} Med. Rep. Appointment System. All rights reserved.</p>
-    </div>
     
     <script>
         // Auto-print when page loads

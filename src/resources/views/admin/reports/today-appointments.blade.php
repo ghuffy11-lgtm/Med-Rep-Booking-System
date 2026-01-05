@@ -39,22 +39,63 @@
 
 @section('content')
 <div class="card mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <div>
-            <h5 class="mb-0">
-                <i class="bi bi-calendar-day"></i> Today's Appointments
-            </h5>
-            <small class="text-muted">{{ $today->format('l, F j, Y') }}</small>
+<div class="card-header">
+        <h5 class="mb-3">
+            <i class="bi bi-calendar-day"></i> Appointments Report
+        </h5>
+        
+        {{-- Date Filter Form --}}
+        <form method="GET" action="{{ route('admin.reports.today') }}" class="row g-3 align-items-end mb-3">
+            <div class="col-md-3">
+                <label for="from_date" class="form-label">From Date</label>
+                <input type="date" 
+                       class="form-control" 
+                       id="from_date" 
+                       name="from_date" 
+                       value="{{ request('from_date', $fromDate->format('Y-m-d')) }}">
+            </div>
+            
+            <div class="col-md-3">
+                <label for="to_date" class="form-label">To Date</label>
+                <input type="date" 
+                       class="form-control" 
+                       id="to_date" 
+                       name="to_date" 
+                       value="{{ request('to_date', $toDate->format('Y-m-d')) }}">
+            </div>
+            
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Filter
+                </button>
+                <a href="{{ route('admin.reports.today') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-clockwise"></i> Reset
+                </a>
+            </div>
+        </form>
+
+        {{-- Display current date range --}}
+        <div class="alert alert-info mb-0">
+            <i class="bi bi-info-circle"></i>
+            @if($fromDate->eq($toDate))
+                Showing appointments for: <strong>{{ $fromDate->format('l, F j, Y') }}</strong>
+            @else
+                Showing appointments from: <strong>{{ $fromDate->format('M j, Y') }}</strong> to <strong>{{ $toDate->format('M j, Y') }}</strong>
+            @endif
         </div>
-        <div class="btn-group">
-            <a href="{{ route('admin.reports.today.print') }}" target="_blank" class="btn btn-outline-primary">
+        
+        {{-- Export buttons --}}
+        <div class="d-flex justify-content-end gap-2 mt-3">
+            <a href="{{ route('admin.reports.today.print', ['from_date' => request('from_date', $fromDate->format('Y-m-d')), 'to_date' => request('to_date', $toDate->format('Y-m-d'))]) }}" 
+               target="_blank" 
+               class="btn btn-outline-primary">
                 <i class="bi bi-printer"></i> Print
             </a>
-            <a href="{{ route('admin.reports.today.pdf') }}" class="btn btn-outline-danger">
+            <a href="{{ route('admin.reports.today.pdf', ['from_date' => request('from_date', $fromDate->format('Y-m-d')), 'to_date' => request('to_date', $toDate->format('Y-m-d'))]) }}" 
+               class="btn btn-outline-danger">
                 <i class="bi bi-file-pdf"></i> Download PDF
             </a>
         </div>
-    </div>
     <div class="card-body">
         <!-- Statistics -->
         <div class="row mb-4">
@@ -91,37 +132,27 @@
                 <thead class="table-light">
                     <tr>
                         <th style="width: 5%;">#</th>
+                        <th style="width: 12%;">Date</th>
                         <th style="width: 10%;">Time</th>
                         <th style="width: 25%;">Representative Name</th>
                         <th style="width: 20%;">Company</th>
                         <th style="width: 20%;">Department</th>
                         <th style="width: 15%;">Contact</th>
-                        <th style="width: 5%;">Type</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($appointments as $index => $appointment)
                     <tr>
                         <td>{{ $index + 1 }}</td>
-                        <td>
-                            <strong>{{ \Carbon\Carbon::parse($appointment->time_slot)->format('g:i A') }}</strong>
-                        </td>
-                        <td>
-                            <strong>{{ $appointment->user->name }}</strong>
-                        </td>
+                        <td>{{ \Carbon\Carbon::parse($appointment->booking_date)->format('M j, Y') }}</td>
+                        <td>{{ \Carbon\Carbon::parse($appointment->time_slot)->format('g:i A') }}</td>
+                        <td>{{ $appointment->user->name }}
                         <td>{{ $appointment->user->company }}</td>
                         <td>
                             <i class="bi bi-hospital"></i> {{ $appointment->department->name }}
                         </td>
                         <td>
                             <small>{{ $appointment->user->email }}</small>
-                        </td>
-                        <td>
-                            @if($appointment->department->is_pharmacy_department)
-                                <span class="badge bg-info">Pharmacy</span>
-                            @else
-                                <span class="badge bg-success">Clinical</span>
-                            @endif
                         </td>
                     </tr>
                     @endforeach

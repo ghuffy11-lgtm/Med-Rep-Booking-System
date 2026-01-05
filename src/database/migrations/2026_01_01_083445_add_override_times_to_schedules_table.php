@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('schedules', function (Blueprint $table) {
-            //
+            $table->time('override_start_time')->nullable()->after('override_days');
+            $table->time('override_end_time')->nullable()->after('override_start_time');
         });
     }
 
@@ -22,7 +23,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('schedules', function (Blueprint $table) {
-            //
+            $table->dropColumn(['override_start_time', 'override_end_time']);
+
         });
     }
 };

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Today's Appointments - {{ $today->format('Y-m-d') }}</title>
+<title>Appointments Report - {{ $fromDate->format('Y-m-d') }} to {{ $toDate->format('Y-m-d') }}</title>
     <style>
         @page {
             margin: 15mm;
@@ -146,7 +146,12 @@
 <body>
     <div class="header">
         <h1>Med. Rep. Appointment System</h1>
-        <h2>Today's Appointments Report - {{ $today->format('l, F j, Y') }}</h2>
+<h2>Appointments Report</h2>
+@if($fromDate->eq($toDate))
+    <p>Date: {{ $fromDate->format('l, F j, Y') }}</p>
+@else
+    <p>Period: {{ $fromDate->format('M j, Y') }} to {{ $toDate->format('M j, Y') }}</p>
+@endif
     </div>
     
     <div class="stats">
@@ -174,29 +179,23 @@
             <tr>
                 <th style="width: 5%;">#</th>
                 <th style="width: 10%;">Time</th>
+                <th style="width: 12%;">Date</th>
                 <th style="width: 23%;">Representative Name</th>
                 <th style="width: 18%;">Company</th>
                 <th style="width: 18%;">Department</th>
                 <th style="width: 18%;">Contact</th>
-                <th style="width: 8%;">Type</th>
             </tr>
         </thead>
         <tbody>
             @foreach($appointments as $index => $appointment)
             <tr>
                 <td>{{ $index + 1 }}</td>
+                <td><strong>{{ \Carbon\Carbon::parse($appointment->booking_date)->format('M j, Y') }}</strong></td>
                 <td><strong>{{ \Carbon\Carbon::parse($appointment->time_slot)->format('g:i A') }}</strong></td>
                 <td><strong>{{ $appointment->user->name }}</strong></td>
                 <td>{{ $appointment->user->company }}</td>
                 <td>{{ $appointment->department->name }}</td>
                 <td style="font-size: 8pt;">{{ $appointment->user->email }}</td>
-                <td style="text-align: center;">
-                    @if($appointment->department->is_pharmacy_department)
-                        <span class="badge badge-pharmacy">Pharmacy</span>
-                    @else
-                        <span class="badge badge-clinical">Clinical</span>
-                    @endif
-                </td>
             </tr>
             @endforeach
         </tbody>
