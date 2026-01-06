@@ -84,10 +84,6 @@ if (!$user->hasVerifiedEmail()) {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        
-foreach ($request->cookies->keys() as $cookieName) {
-    \Cookie::queue(\Cookie::forget($cookieName));
-    }
     
     return redirect('/login')->with('success', 'You have been logged out successfully.');
 }
