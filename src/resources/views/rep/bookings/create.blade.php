@@ -128,6 +128,124 @@
         font-weight: 600;
         border-radius: 10px;
     }
+
+    /* Instructions Accordion */
+    .instructions-accordion {
+        margin-bottom: 20px;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .accordion-button {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+        padding: 16px 20px;
+        border: none;
+        border-radius: 12px !important;
+        transition: all 0.3s;
+    }
+
+    .accordion-button:not(.collapsed) {
+        background: linear-gradient(135deg, #0a58ca 0%, #084298 100%);
+        color: white;
+        box-shadow: none;
+    }
+
+    .accordion-button:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        border-color: transparent;
+    }
+
+    .accordion-button::after {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+    }
+
+    .accordion-body {
+        background: #f8f9fa;
+        padding: 20px;
+        font-size: 0.95rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: start;
+        margin-bottom: 14px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .info-item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .info-icon {
+        width: 32px;
+        height: 32px;
+        background: #0d6efd;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 16px;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+
+    .info-content strong {
+        display: block;
+        color: #212529;
+        font-size: 0.95rem;
+        margin-bottom: 4px;
+    }
+
+    .info-content span {
+        color: #6c757d;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .contact-box {
+        background: white;
+        border: 2px solid #0d6efd;
+        border-radius: 10px;
+        padding: 16px;
+        margin-top: 16px;
+    }
+
+    .contact-box h6 {
+        color: #0d6efd;
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .contact-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .contact-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .contact-item i {
+        color: #0d6efd;
+        font-size: 18px;
+        width: 24px;
+        margin-right: 8px;
+    }
+
+    .contact-item span {
+        color: #212529;
+        font-size: 0.9rem;
+    }
 </style>
 @endpush
 
@@ -140,6 +258,125 @@
             <strong>Cooldown:</strong> Next booking on <strong>{{ $cooldownInfo['cooldown_end']->format('F j, Y') }}</strong>.
         </div>
     @endif
+
+    {{-- Booking Instructions Accordion --}}
+    <div class="accordion instructions-accordion" id="bookingInstructions">
+        <div class="accordion-item border-0">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#instructionsContent" aria-expanded="false" aria-controls="instructionsContent">
+                    <i class="bi bi-info-circle-fill me-2"></i> Booking Instructions & Guidelines
+                </button>
+            </h2>
+            <div id="instructionsContent" class="accordion-collapse collapse" data-bs-parent="#bookingInstructions">
+                <div class="accordion-body">
+                    
+                    {{-- Booking Days --}}
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-calendar-week"></i>
+                        </div>
+                        <div class="info-content">
+                            <strong>Allowed Booking Days</strong>
+                            <span>You can book appointments on: <strong>{{ implode(', ', $globalConfig->allowed_days) }}</strong></span>
+                        </div>
+                    </div>
+
+                    {{-- Booking Window --}}
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-calendar-range"></i>
+                        </div>
+                        <div class="info-content">
+                            <strong>Advance Booking Period</strong>
+                            <span>Book up to <strong>{{ $globalConfig->booking_advance_days }} days</strong> in advance</span>
+                        </div>
+                    </div>
+
+                    {{-- Working Hours --}}
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                        <div class="info-content">
+                            <strong>Available Time Slots</strong>
+                            <span>
+                                <strong>Clinical Departments:</strong> {{ \Carbon\Carbon::parse($globalConfig->non_pharmacy_start_time)->format('g:i A') }} - {{ \Carbon\Carbon::parse($globalConfig->non_pharmacy_end_time)->format('g:i A') }}<br>
+                                <strong>Pharmacy Department:</strong> {{ \Carbon\Carbon::parse($globalConfig->pharmacy_start_time)->format('g:i A') }} - {{ \Carbon\Carbon::parse($globalConfig->pharmacy_end_time)->format('g:i A') }}
+                            </span>
+                        </div>
+                    </div>
+
+                    {{-- Slot Duration --}}
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-stopwatch"></i>
+                        </div>
+                        <div class="info-content">
+                            <strong>Appointment Duration</strong>
+                            <span>Each time slot is <strong>{{ $globalConfig->slot_duration_minutes }} minutes</strong></span>
+                        </div>
+                    </div>
+
+                    {{-- Daily Limits --}}
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-bar-chart"></i>
+                        </div>
+                        <div class="info-content">
+                            <strong>Daily Booking Limits</strong>
+                            <span>
+                                <strong>Clinical Departments:</strong> {{ $globalConfig->non_pharmacy_daily_limit }} slots per day<br>
+                                <strong>Pharmacy Department:</strong> {{ $globalConfig->pharmacy_daily_limit }} slots per day
+                            </span>
+                        </div>
+                    </div>
+
+                    {{-- Cooldown Period --}}
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <div class="info-content">
+                            <strong>Cooldown Period</strong>
+                            <span>After an approved appointment, wait <strong>{{ $globalConfig->cooldown_days }} {{ Str::plural('day', $globalConfig->cooldown_days) }}</strong> from the appointment date before booking again</span>
+                        </div>
+                    </div>
+
+                    {{-- Approval Process --}}
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="info-content">
+                            <strong>Approval Process</strong>
+                            <span>Your booking will be reviewed by admin. You'll receive an email notification once it's approved or rejected. Only one pending booking allowed at a time.</span>
+                        </div>
+                    </div>
+
+                    {{-- Contact Information --}}
+                    <div class="contact-box">
+                        <h6><i class="bi bi-question-circle-fill me-2"></i>Need Help?</h6>
+                        
+                        <div class="contact-item">
+                            <i class="bi bi-envelope-fill"></i>
+                            <span><a href="mailto:m.d.office@hadiclinic.com.kw" class="text-decoration-none">m.d.office@hadiclinic.com.kw</a></span>
+                        </div>
+                        
+                        <div class="contact-item">
+                            <i class="bi bi-telephone-fill"></i>
+                            <span><a href="tel:25363000" class="text-decoration-none">25363000 Ext. 163</a></span>
+                        </div>
+                        
+                        <div class="contact-item">
+                            <i class="bi bi-clock-fill"></i>
+                            <span>Office Hours: 8:00 AM to 4:00 PM</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="card border-0 shadow-sm rounded-4">
         <div class="card-header bg-white border-0 pt-4 px-4">
@@ -194,12 +431,6 @@
                     <div id="timeSlotsLoading" class="text-center py-5" style="display: none;">
                         <div class="spinner-border text-primary"></div>
                     </div>
-                 <div class="alert alert-info mb-3" id="slotStatusBox" style="display: none;">
-                    <strong>📊 Availability:</strong> 
-                    <span id="slotAvailable" class="badge bg-success">0</span> Available | 
-                    <span id="slotOccupied" class="badge bg-danger">0</span> Occupied
-                    <small class="d-block mt-1">Total: <span id="slotTotal">0</span> slots</small>
-                </div>
                     <div id="timeSlotsContainer"></div>
                     <div class="d-flex gap-2 mt-4">
                         <button type="button" class="btn btn-secondary btn-lg-custom px-4" onclick="prevStep(2)">Back</button>
@@ -252,7 +483,7 @@ let datePicker = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     datePicker = flatpickr("#booking_date", {
-        minDate: new Date().fp_incr(1),
+        minDate: "today",
         maxDate: new Date().fp_incr({{ $globalConfig->booking_advance_days ?? 7 }}),
         dateFormat: "Y-m-d",
         disable: [function(date) {
@@ -304,65 +535,34 @@ function prevStep(step) {
 function loadTimeSlots() {
     document.getElementById('timeSlotsLoading').style.display = 'block';
     document.getElementById('timeSlotsContainer').innerHTML = '';
+    nextStep(3);
 
     fetch(`/api/slots/available?department_id=${selectedDepartment}&date=${selectedDate}`)
         .then(res => res.json())
         .then(data => {
-            nextStep(3);  // Move to step 3 AFTER fetch starts
             document.getElementById('timeSlotsLoading').style.display = 'none';
-
             if (data.success && data.slots.length > 0) {
-                // Update status display
-                const statusBox = document.getElementById('slotStatusBox');
-                if (statusBox) {
-                    statusBox.style.display = 'block';
-                    document.getElementById('slotAvailable').innerText = data.available_count;
-                    document.getElementById('slotOccupied').innerText = data.booked_count;
-                    document.getElementById('slotTotal').innerText = data.total_slots;
-                }
-
                 let html = '';
-                let availableCount = 0;
-
                 data.slots.forEach(slot => {
-                    if (slot.is_available) {
-                        // Available slot - Green, clickable
-                        availableCount++;
-                        html += `
-                            <div class="time-slot-item">
-                                <input type="radio" name="time_slot" id="slot_${slot.time}" value="${slot.time}" class="time-slot-radio" data-display="${slot.formatted}" required>
-                                <label for="slot_${slot.time}" class="time-slot-label">
-                                    <span>
-                                        <strong class="slot-text">${slot.formatted}</strong>
-                                        <small class="text-success fw-bold"><i class="bi bi-check-circle"></i> Available</small>
-                                    </span>
-                                </label>
-                            </div>`;
-                    } else {
-                        // Occupied slot - Red, disabled
-                        html += `
-                            <div class="time-slot-item">
-                                <label class="time-slot-label" style="opacity: 0.6; cursor: not-allowed; border-color: #dc3545;">
-                                    <span>
-                                        <strong class="slot-text" style="color: #6c757d;">${slot.formatted}</strong>
-                                        <small class="text-danger fw-bold"><i class="bi bi-x-circle"></i> Occupied</small>
-                                    </span>
-                                </label>
-                            </div>`;
-                    }
+                    html += `
+                        <div class="time-slot-item">
+                            <input type="radio" name="time_slot" id="slot_${slot.time}" value="${slot.time}" class="time-slot-radio" data-display="${slot.formatted}" required>
+                            <label for="slot_${slot.time}" class="time-slot-label">
+                                <span>
+                                    <strong class="slot-text">${slot.formatted}</strong>
+                                    <small class="text-success fw-bold"><i class="bi bi-check-circle"></i> Available</small>
+                                </span>
+                            </label>
+                        </div>`;
                 });
-
-                if (availableCount === 0) {
-                    html = '<div class="text-center py-4"><p class="text-danger">All slots are occupied for this date.</p></div>';
-                }
-
                 document.getElementById('timeSlotsContainer').innerHTML = html;
                 document.querySelectorAll('.time-slot-radio').forEach(radio => {
                     radio.addEventListener('change', () => {
                         document.getElementById('step3Next').disabled = false;
-                        // Auto-advance to review step
-                        setTimeout(() => nextStep(4), 300);
-                    });
+               // Auto-advance to review step
+                setTimeout(() => nextStep(4), 300); // 300ms delay for smooth transition
+
+                   });
                 });
             } else {
                 document.getElementById('timeSlotsContainer').innerHTML = '<div class="text-center py-4"><p>No slots available.</p></div>';
