@@ -240,7 +240,7 @@
         <p class="text-muted">You don't have any approved bookings scheduled.</p>
         @if(!$cooldownInfo['in_cooldown'])
         <a href="{{ route('rep.bookings.create') }}" class="btn btn-primary mt-2">
-            <i class="bi bi-plus-circle"></i> Create Your First Booking
+            <i class="bi bi-plus-circle"></i> Create New Booking
         </a>
         @endif
     </div>

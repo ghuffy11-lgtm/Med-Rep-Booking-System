@@ -11,13 +11,13 @@
        ======================================== */
     
     /* Main brand color (blue) */
-    --primary-color: #4e73df;
-    --primary-dark: #224abe;
+    --primary-color: #13a0d5;
+    --primary-dark: #0d7ea2;
     --primary-light: #6c8cef;
     --primary-lighter: #8fa9f3;
     
     /* Primary gradient (used in sidebars, headers, buttons) */
-    --primary-gradient: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    --primary-gradient: linear-gradient(135deg, #13a0d5 0%, #0d7ea2 100%);
     
     /* Hover states */
     --primary-hover: #3a5fc9;

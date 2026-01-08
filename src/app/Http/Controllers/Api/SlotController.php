@@ -7,6 +7,7 @@ use App\Models\Department;
 use App\Services\BookingService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class SlotController extends Controller
 {
@@ -28,14 +29,53 @@ class SlotController extends Controller
             $department = Department::findOrFail($request->department_id);
             $date = Carbon::parse($request->date);
             
+            // Log the request for debugging
+            Log::info('Slot availability request', [
+                'user_id' => auth()->id(),
+                'department_id' => $department->id,
+                'department_name' => $department->name,
+                'is_pharmacy' => $department->is_pharmacy_department,
+                'date' => $date->format('Y-m-d')
+            ]);
+            
             $result = $this->bookingService->getAvailableSlots($department, $date);
             
-            return response()->json($result);
+            // Enhanced logging for debugging slot availability
+		Log::info('Slot availability result', [
+   		 'total_slots' => $result['total_slots'] ?? 0,
+   		 'available_count' => $result['available_count'] ?? 0,
+   		 'occupied_count' => $result['occupied_count'] ?? $result['booked_count'] ?? 0,
+   		 'slots_detail' => collect($result['slots'] ?? [])->map(function($slot) {
+        return [
+            'time' => $slot['time'] ?? null,
+            'available' => $slot['is_available'] ?? false,
+            'booking_id' => $slot['booking_id'] ?? null		
+                    ];
+                })
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $result,
+                'debug_info' => [
+                    'department_type' => $department->is_pharmacy_department ? 'pharmacy' : 'non_pharmacy',
+                    'date' => $date->format('Y-m-d'),
+                    'user_id' => auth()->id()
+                ]
+            ]);
+            
         } catch (\Exception $e) {
+            Log::error('Failed to load available slots', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'department_id' => $request->department_id,
+                'date' => $request->date
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to load available slots.',
-                'error' => $e->getMessage()
+                'error' => config('app.debug') ? $e->getMessage() : 'An error occurred'
             ], 500);
         }
     }

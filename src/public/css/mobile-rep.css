@@ -159,9 +159,9 @@
     
     .rep-mobile-view .time-slot-btn:hover,
     .rep-mobile-view .time-slot-btn.selected {
-        background: #0d6efd !important;
+        background: #13a0d5 !important;
         color: white !important;
-        border-color: #0d6efd !important;
+        border-color: #13a0d5 !important;
         transform: scale(1.02);
     }
     
@@ -499,7 +499,7 @@
     }
     
     .rep-mobile-nav-bottom .nav-link.active {
-        color: #0d6efd;
+        color: #13a0d5;
     }
     
     /* Add padding to body when bottom nav is present */
@@ -521,7 +521,7 @@
     .rep-mobile-view .form-control:focus,
     .rep-mobile-view .form-select:focus,
     .rep-mobile-view .btn:focus {
-        outline: 3px solid #0d6efd;
+        outline: 3px solid #13a0d5;
         outline-offset: 2px;
         box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.25);
     }

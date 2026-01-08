@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="...">
     <style>
         body {
-            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            background: linear-gradient(135deg, #13a0d5 0%, #0d7ea2 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -36,7 +36,7 @@
         }
 
         .login-header {
-            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            background: linear-gradient(135deg, #13a0d5 0%, #224abe 100%);
             color: white;
             padding: 40px 20px;
             text-align: center;
@@ -111,7 +111,7 @@
             font-size: 18px;
             font-weight: 600;
             border-radius: 12px;
-            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            background: linear-gradient(135deg, #13a0d5 0%, #0d7ea2 100%);
             border: none;
             color: white;
             margin-top: 10px;
@@ -365,8 +365,8 @@
             Remember me
         </label>
     </div>
-    <a href="{{ route('password.request') }}" style="color: #667eea; font-weight: 600; text-decoration: none; font-size: 15px;">
-        Forgot?
+    <a href="{{ route('password.request') }}" style="color: #13a0d5; font-weight: 600; text-decoration: none; font-size: 15px;">
+        Forgot Password?
     </a>
 </div>
 

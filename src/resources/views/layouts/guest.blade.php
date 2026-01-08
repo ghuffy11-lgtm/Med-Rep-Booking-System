@@ -13,7 +13,7 @@
     
     <style>
         body {
-            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            background: linear-gradient(135deg, #13a0d5 0%, #a2b2e3 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -35,7 +35,7 @@
         }
         
         .auth-header {
-            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            background: linear-gradient(135deg, #13a0d5 0%, #224abe 100%);
             color: white;
             padding: 2.5rem 2rem;
             text-align: center;
@@ -72,7 +72,7 @@
         }
         
         .form-control:focus {
-            border-color: #667eea;
+            border-color: #4e73df;
             box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
         }
         
@@ -89,7 +89,7 @@
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            background: linear-gradient(135deg, #13a0d5 0%, #224abe 100%);
             border: none;
             border-radius: 10px;
             padding: 0.75rem 1.5rem;
@@ -138,7 +138,7 @@
         }
         
         .form-check-input:checked {
-            background-color: #667eea;
+            background-color: #13a0d5;
             border-color: #667eea;
         }
     </style>

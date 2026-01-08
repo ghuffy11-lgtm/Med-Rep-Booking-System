@@ -244,36 +244,6 @@
         @yield('content')
     </div>
 
-    <!-- Optional: Bottom Navigation for Mobile -->
-    @if(!isset($hideBottomNav) || !$hideBottomNav)
-    <nav class="rep-mobile-nav-bottom mobile-only">
-        <a href="{{ route('rep.dashboard') }}" class="nav-item">
-            <div class="nav-link {{ request()->routeIs('rep.dashboard') ? 'active' : '' }}">
-                <i class="bi bi-house-door"></i>
-                <span>Home</span>
-            </div>
-        </a>
-        <a href="{{ route('rep.bookings.create') }}" class="nav-item">
-            <div class="nav-link {{ request()->routeIs('rep.bookings.create') ? 'active' : '' }}">
-                <i class="bi bi-plus-circle-fill"></i>
-                <span>Book</span>
-            </div>
-        </a>
-        <a href="{{ route('rep.bookings.index') }}" class="nav-item">
-            <div class="nav-link {{ request()->routeIs('rep.bookings.index') ? 'active' : '' }}">
-                <i class="bi bi-calendar-check"></i>
-                <span>Bookings</span>
-            </div>
-        </a>
-        <a href="{{ route('rep.profile.edit') }}" class="nav-item">
-            <div class="nav-link {{ request()->routeIs('rep.profile.*') ? 'active' : '' }}">
-                <i class="bi bi-person"></i>
-                <span>Profile</span>
-            </div>
-        </a>
-    </nav>
-    @endif
-
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     

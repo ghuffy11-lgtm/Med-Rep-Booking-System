@@ -686,11 +686,11 @@ if ($overrideSchedule && $overrideSchedule->hasCustomTimes()) {
                 });
             }
 
-            $bookedSlots = $query->pluck('time_slot')->toArray();
+		$bookedSlots = $query->get()->keyBy('time_slot');
 
             // Mark all slots as available or occupied (don't filter them out)
             $availableSlots = array_map(function($slot) use ($bookedSlots) {
-               $slot['is_available'] = !in_array($slot['time'], $bookedSlots);
+		$slot['is_available'] = !$bookedSlots->has($slot['time']);
                return $slot;
              }, $allSlots);
 
@@ -704,7 +704,7 @@ if ($overrideSchedule && $overrideSchedule->hasCustomTimes()) {
                     : 'No available slots for this date.',
                 'slots' => array_values($availableSlots),
                 'total_slots' => count($allSlots),
-                'available_count' => count($availableSlots),
+		'available_count' => count(array_filter($availableSlots, fn($s) => $s['is_available'])),
                 'booked_count' => $limitCheck['booked'] ?? 0,
                 'limit' => $limitCheck['limit'] ?? 0,
             ];

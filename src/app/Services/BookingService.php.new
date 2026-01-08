@@ -6,9 +6,12 @@ use App\Models\Booking;
 use App\Models\Department;
 use App\Models\GlobalSlotConfig;
 use App\Models\User;
+use App\Mail\BookingApproved;
+use App\Mail\BookingRejected;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class BookingService
 {
@@ -47,7 +50,7 @@ class BookingService
     public function validatePendingBooking(User $user): array
     {
         $pendingBooking = $user->getPendingBooking();
-        
+
         if ($pendingBooking) {
             return [
                 'valid' => false,
@@ -70,7 +73,7 @@ class BookingService
     {
         $config = GlobalSlotConfig::current();
         $dayOfWeek = $date->format('l'); // "Monday", "Tuesday", etc.
-        
+
         if (!$config->isDayAllowed($dayOfWeek)) {
             $allowedDays = implode(', ', $config->getAllowedDays());
             return [
@@ -130,7 +133,7 @@ class BookingService
     public function validateSlotAvailability(Department $department, Carbon $date, string $timeSlot): array
     {
         $isPharmacy = $department->is_pharmacy_department;
-        
+
         // Get all bookings for this time slot on this date
         $query = Booking::where('booking_date', $date->format('Y-m-d'))
             ->where('time_slot', $timeSlot)
@@ -172,7 +175,7 @@ class BookingService
     {
         $config = GlobalSlotConfig::current();
         $isPharmacy = $department->is_pharmacy_department;
-        
+
         $query = Booking::where('booking_date', $date->format('Y-m-d'))
             ->whereIn('status', ['pending', 'approved']);
 
@@ -343,6 +346,7 @@ class BookingService
     /**
      * Approve a booking
      * Rule 2: Starts cooldown from appointment date
+     * ✅ SENDS EMAIL NOTIFICATION
      */
     public function approveBooking(Booking $booking, User $admin): array
     {
@@ -371,6 +375,18 @@ class BookingService
 
             DB::commit();
 
+            // ✅ Send approval email
+            try {
+                Mail::to($booking->user->email)->send(new BookingApproved($booking));
+            } catch (\Exception $e) {
+                Log::error('Failed to send booking approval email', [
+                    'booking_id' => $booking->id,
+                    'user_email' => $booking->user->email,
+                    'error' => $e->getMessage(),
+                ]);
+                // Don't fail the approval if email fails
+            }
+
             return [
                 'success' => true,
                 'message' => 'Booking approved successfully. Cooldown period will start from the appointment date.',
@@ -396,6 +412,7 @@ class BookingService
     /**
      * Reject a booking
      * Rule 2: Rejected bookings do NOT trigger cooldown
+     * ✅ SENDS EMAIL NOTIFICATION
      */
     public function rejectBooking(Booking $booking, User $admin, string $reason): array
     {
@@ -424,6 +441,18 @@ class BookingService
 
             DB::commit();
 
+            // ✅ Send rejection email
+            try {
+                Mail::to($booking->user->email)->send(new BookingRejected($booking, $reason));
+            } catch (\Exception $e) {
+                Log::error('Failed to send booking rejection email', [
+                    'booking_id' => $booking->id,
+                    'user_email' => $booking->user->email,
+                    'error' => $e->getMessage(),
+                ]);
+                // Don't fail the rejection if email fails
+            }
+
             return [
                 'success' => true,
                 'message' => 'Booking rejected. Representative can book again immediately.',
@@ -449,6 +478,7 @@ class BookingService
     /**
      * Cancel a booking (Admin only for approved bookings)
      * Rule 4: Cancelled approved bookings REMOVE cooldown
+     * ✅ SENDS EMAIL NOTIFICATION
      */
     public function cancelBooking(Booking $booking, User $canceller, string $reason): array
     {
@@ -487,6 +517,18 @@ class BookingService
             );
 
             DB::commit();
+
+            // ✅ Send cancellation email
+            try {
+                Mail::to($booking->user->email)->send(new BookingRejected($booking, $reason));
+            } catch (\Exception $e) {
+                Log::error('Failed to send booking cancellation email', [
+                    'booking_id' => $booking->id,
+                    'user_email' => $booking->user->email,
+                    'error' => $e->getMessage(),
+                ]);
+                // Don't fail the cancellation if email fails
+            }
 
             $message = 'Booking cancelled successfully.';
             if ($oldValues['status'] === 'approved') {
@@ -612,10 +654,23 @@ class BookingService
             // Get config and generate time slots
             $config = GlobalSlotConfig::current();
             $isPharmacy = $department->is_pharmacy_department;
-            
-            $allSlots = $isPharmacy 
-                ? $config->getPharmacyTimeSlots() 
-                : $config->getNonPharmacyTimeSlots();
+
+// Check if there's an override schedule with custom times
+$overrideSchedule = $department->getOverrideScheduleFor($date);
+
+if ($overrideSchedule && $overrideSchedule->hasCustomTimes()) {
+    // Use override times
+    $allSlots = $config->generateTimeSlots(
+        $overrideSchedule->override_start_time,
+        $overrideSchedule->override_end_time
+    );
+} else {
+    // Use global config times
+    $allSlots = $isPharmacy
+        ? $config->getPharmacyTimeSlots()
+        : $config->getNonPharmacyTimeSlots();
+}
+
 
             // Get booked slots
             $query = Booking::where('booking_date', $date->format('Y-m-d'))
@@ -631,25 +686,27 @@ class BookingService
                 });
             }
 
-            $bookedSlots = $query->pluck('time_slot')->toArray();
+		$bookedSlots = $query->get()->keyBy('time_slot');
 
-            // Filter available slots
-            $availableSlots = array_filter($allSlots, function($slot) use ($bookedSlots) {
-                return !in_array($slot['time'], $bookedSlots);
-            });
+            // Mark all slots as available or occupied (don't filter them out)
+            $availableSlots = array_map(function($slot) use ($bookedSlots) {
+		$slot['is_available'] = !$bookedSlots->has($slot['time']);
+               return $slot;
+             }, $allSlots);
 
             // Get limits info
             $limitCheck = $this->validateDailyLimits($department, $date);
 
             return [
                 'success' => true,
-                'message' => count($availableSlots) > 0 
-                    ? 'Available slots found.' 
+                'message' => count($availableSlots) > 0
+                    ? 'Available slots found.'
                     : 'No available slots for this date.',
                 'slots' => array_values($availableSlots),
                 'total_slots' => count($allSlots),
-                'available_count' => count($availableSlots),
+		'available_count' => count(array_filter($availableSlots, fn($s) => $s['is_available'])),
                 'booked_count' => $limitCheck['booked'] ?? 0,
+	        'occupied_count' => $limitCheck['booked'] ?? 0,  // ← ADD THIS LINE
                 'limit' => $limitCheck['limit'] ?? 0,
             ];
 

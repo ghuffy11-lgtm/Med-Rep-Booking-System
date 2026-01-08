@@ -138,7 +138,7 @@
     }
 
     .accordion-button {
-        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        background: linear-gradient(135deg, #13a0d5 0%, #13a0d5 100%);
         color: white;
         font-weight: 600;
         font-size: 1rem;
@@ -541,19 +541,43 @@ function loadTimeSlots() {
         .then(res => res.json())
         .then(data => {
             document.getElementById('timeSlotsLoading').style.display = 'none';
-            if (data.success && data.slots.length > 0) {
+		if (data.success && data.data && data.data.slots.length > 0) {
                 let html = '';
-                data.slots.forEach(slot => {
-                    html += `
-                        <div class="time-slot-item">
-                            <input type="radio" name="time_slot" id="slot_${slot.time}" value="${slot.time}" class="time-slot-radio" data-display="${slot.formatted}" required>
+		data.data.slots.forEach(slot => {
+
+                    if (slot.is_available) {
+                        html += `
+                            <input type="radio"
+                                   name="time_slot"
+                                   id="slot_${slot.time}"
+                                   value="${slot.time}"
+                                   class="time-slot-radio"
+                                   data-display="${slot.formatted}"
+                                   required>
                             <label for="slot_${slot.time}" class="time-slot-label">
                                 <span>
                                     <strong class="slot-text">${slot.formatted}</strong>
-                                    <small class="text-success fw-bold"><i class="bi bi-check-circle"></i> Available</small>
+                                    <small class="text-success fw-bold">
+                                        <i class="bi bi-check-circle"></i> Available
+                                    </small>
                                 </span>
                             </label>
-                        </div>`;
+                        `;
+                    } else {
+                        html += `
+                            <input type="radio" disabled class="time-slot-radio">
+                            <label class="time-slot-label"
+                                   style="opacity:0.5; cursor:not-allowed; background:#f8d7da; border-color:#dc3545;">
+                                <span>
+                                    <strong class="slot-text">${slot.formatted}</strong>
+                                    <small class="text-danger fw-bold">
+                                        <i class="bi bi-x-circle"></i> Occupied
+                                    </small>
+                                </span>
+                            </label>
+                        `;
+                    }
+
                 });
                 document.getElementById('timeSlotsContainer').innerHTML = html;
                 document.querySelectorAll('.time-slot-radio').forEach(radio => {
