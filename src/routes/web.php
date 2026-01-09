@@ -60,27 +60,34 @@ Route::get('/email/verify', function () {
 })->middleware('auth')->name('verification.notice');
 
 // Email verification handler (NO AUTH - signed URL provides security)
-// Email verification handler (NO AUTH - signed URL provides security)
 Route::get('/email/verify/{id}/{hash}', function (Request $request) {
     $user = \App\Models\User::findOrFail($request->route('id'));
     
     if (! hash_equals((string) $request->route('hash'), sha1($user->getEmailForVerification()))) {
-        abort(403);
+        abort(403, 'Invalid verification link.');
     }
     
     if ($user->hasVerifiedEmail()) {
-        return redirect()->route('login')->with('info', 'Email already verified.');
+        \Log::info('Email already verified', ['user_id' => $user->id]);
+        return redirect('/login')->with('info', 'Email already verified. You can login now.');
     }
     
     \Log::info('Verification started', ['user_id' => $user->id]);
     
     $user->markEmailAsVerified();
+    
     \Log::info('After markEmailAsVerified', ['verified' => $user->hasVerifiedEmail()]);
     
     event(new \Illuminate\Auth\Events\Verified($user));
+    
     \Log::info('After event', ['is_active' => $user->fresh()->is_active]);
-
-    return redirect()->route('login')->with('success', 'Email verified successfully! Your account is now active.');
+    
+    // Clear any cached routes/config
+    \Artisan::call('route:clear');
+    \Artisan::call('config:clear');
+    
+    return redirect('/login')->with('success', 'Email verified successfully! Your account is now active. You can login now.');
+    
 })->middleware(['signed'])->name('verification.verify');
 // Resend verification email (needs auth)
 Route::post('/email/verification-notification', function (Request $request) {
