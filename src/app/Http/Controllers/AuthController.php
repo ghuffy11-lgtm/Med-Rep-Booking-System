@@ -155,7 +155,16 @@ if (!$user->hasVerifiedEmail()) {
 //        AuditLogService::log($user, 'created', null, $user->toArray());
 
         // Send email verification
+
+\Log::info('=== SENDING VERIFICATION EMAIL ===', [
+    'user_id' => $user->id,
+    'email' => $user->email,
+    'user_agent' => $request->header('User-Agent')
+]);
+
         $user->sendEmailVerificationNotification();
+
+\Log::info('=== EMAIL SEND ATTEMPTED ===');
 
         return redirect()->route('verification.notice')->with(
             'success',

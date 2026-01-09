@@ -123,6 +123,18 @@
         <form action="{{ route('register') }}" method="POST" id="registerForm">
             @csrf
 
+		@if ($errors->any())
+		    <div class="alert alert-danger alert-dismissible fade show">
+		        <strong>Registration failed:</strong>
+		        <ul class="mb-0 mt-2">
+		            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+@endif
+
             <div class="form-floating">
                 <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" placeholder="Full Name" required>
                 <label for="name"><i class="bi bi-person"></i> Full Name</label>
@@ -134,6 +146,12 @@
                 <label for="email"><i class="bi bi-envelope"></i> Email Address</label>
                 @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
+
+	    <div class="form-floating">
+		<input type="text" class="form-control @error('company') is-invalid @enderror" id="company" name="company" value="{{ old('company') }}" placeholder="Company Name" required>
+		<label for="company"><i class="bi bi-building"></i> Company Name</label>
+		@error('company') <div class="invalid-feedback">{{ $message }}</div> @enderror
+	   </div>
 
             <div class="form-floating">
                 <input type="text" class="form-control @error('civil_id') is-invalid @enderror" id="civil_id" name="civil_id" value="{{ old('civil_id') }}" placeholder="Civil ID" inputmode="numeric" pattern="[0-9]{12}" maxlength="12" required>
@@ -191,16 +209,11 @@
     const btnText = document.getElementById('btnText');
     const btnLoading = document.getElementById('btnLoading');
 
-    form.addEventListener('submit', function(e) {
-        const hcaptcha = document.querySelector('[name="h-captcha-response"]');
-        if (!hcaptcha || !hcaptcha.value) {
-            e.preventDefault();
-            alert('Please verify you are not a robot');
-            return;
-        }
-        submitBtn.disabled = true;
-        btnText.style.display = 'none';
-        btnLoading.style.display = 'inline-block';
+form.addEventListener('submit', function(e) {
+    // Allow form to submit - server will validate hCaptcha
+    submitBtn.disabled = true;
+    btnText.style.display = 'none';
+    btnLoading.style.display = 'inline-block';
     });
 </script>
 
