@@ -61,7 +61,15 @@ Route::get('/email/verify', function () {
 
 // Email verification handler (NO AUTH - signed URL provides security)
 Route::get('/email/verify/{id}/{hash}', function (Request $request) {
-    $user = \App\Models\User::findOrFail($request->route('id'));
+    $userId = $request->route('id');
+    $user = \App\Models\User::findOrFail($userId);
+    
+    // If user is logged in and verifying their own email, log them out first
+    if (Auth::check() && Auth::id() == $userId && !$user->hasVerifiedEmail()) {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+    }
     
     if (! hash_equals((string) $request->route('hash'), sha1($user->getEmailForVerification()))) {
         abort(403, 'Invalid verification link.');
@@ -86,7 +94,10 @@ Route::get('/email/verify/{id}/{hash}', function (Request $request) {
     \Artisan::call('route:clear');
     \Artisan::call('config:clear');
     
-    return redirect('/login')->with('success', 'Email verified successfully! Your account is now active. You can login now.');
+// Clear any lingering session data
+$request->session()->flush();
+
+return redirect('/login')->with('success', 'Email verified successfully! Your account is now active. You can login now.');
     
 })->middleware(['signed'])->name('verification.verify');
 // Resend verification email (needs auth)

@@ -349,12 +349,15 @@
         margin: 0 !important;
         max-width: 100% !important;
         height: 100vh;
+        z-index: 1060 !important; /* ADD THIS */
+
     }
     
     .rep-mobile-view .modal-content {
         height: 100vh;
         border: none;
         border-radius: 0;
+        z-index: 1060 !important; /* ADD THIS */
     }
     
     .rep-mobile-view .modal-header {
@@ -584,4 +587,14 @@
     .btn {
         display: none !important;
     }
+}
+/* ========================================
+   MODAL Z-INDEX FIX - MOBILE ONLY
+   ======================================== */
+.rep-mobile-view .modal-backdrop {
+    z-index: 1055 !important;
+}
+
+.rep-mobile-view .modal.show {
+    z-index: 1060 !important;
 }
