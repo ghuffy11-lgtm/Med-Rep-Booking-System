@@ -25,6 +25,3 @@ Thumbs.db
 docker-compose.yml
 ssl/
 
-# Session documentation (local only)
-SESSION_SUMMARY_JAN_11_2026.md
-
