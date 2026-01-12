@@ -688,10 +688,27 @@ if ($overrideSchedule && $overrideSchedule->hasCustomTimes()) {
 
 		$bookedSlots = $query->get()->keyBy('time_slot');
 
+            // Check if the selected date is today
+            $isToday = $date->isToday();
+            $currentTime = now()->format('H:i:s');
+
             // Mark all slots as available or occupied (don't filter them out)
-            $availableSlots = array_map(function($slot) use ($bookedSlots) {
-		$slot['is_available'] = !$bookedSlots->has($slot['time']);
-               return $slot;
+            $availableSlots = array_map(function($slot) use ($bookedSlots, $isToday, $currentTime) {
+                // Check if slot is booked
+                $isBooked = $bookedSlots->has($slot['time']);
+
+                // Check if slot time has passed (only for today)
+                $hasTimePassed = false;
+                if ($isToday) {
+                    $slotTime = $slot['time'];
+                    $hasTimePassed = $slotTime < $currentTime;
+                }
+
+                // Slot is available only if: not booked AND time hasn't passed
+                $slot['is_available'] = !$isBooked && !$hasTimePassed;
+                $slot['time_passed'] = $hasTimePassed; // Add flag for debugging
+
+                return $slot;
              }, $allSlots);
 
             // Get limits info
