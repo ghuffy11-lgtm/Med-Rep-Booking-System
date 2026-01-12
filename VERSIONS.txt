@@ -1,0 +1,45 @@
+===========================================
+MED REP BOOKING SYSTEM - VERSION HISTORY
+===========================================
+
+Latest Version: v1.1 (January 12, 2026)
+Commit: 07aaf15
+
+Changes:
+- Fixed: Past time slots now blocked for today's bookings
+- When booking for today at 4:30 PM, slots before 4:30 PM are now unavailable
+
+---
+
+Version: v1.0 (January 11, 2026)
+Commit: bc281be
+
+Changes:
+- Session summary documentation
+- Mobile registration fixes
+- Email verification fixes
+- Booking system stable version
+
+===========================================
+
+HOW TO DEPLOY A SPECIFIC VERSION:
+
+On your production server, run:
+
+# Deploy Latest (v1.1 - Time Slot Fix)
+git pull origin master
+docker exec -it pharmacy_php php artisan cache:clear
+docker restart pharmacy_php
+
+# To go back to v1.0 (if needed)
+git checkout bc281be
+docker exec -it pharmacy_php php artisan cache:clear
+docker restart pharmacy_php
+
+# To return to latest
+git checkout master
+git pull origin master
+docker exec -it pharmacy_php php artisan cache:clear
+docker restart pharmacy_php
+
+===========================================
