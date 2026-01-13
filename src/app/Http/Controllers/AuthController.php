@@ -47,22 +47,22 @@ class AuthController extends Controller
             $request->session()->regenerate();
             $user = Auth::user();
 
-            // Check if user is active
-            if (!$user->is_active && $user->hasVerifiedEmail()) {
+            // First check: Email verification (must be verified before checking active status)
+            if (!$user->hasVerifiedEmail()) {
                 Auth::logout();
-                return back()->with('error', 'Your account has been deactivated. Please contact administrator.');
+                return redirect()->route('verification.notice')
+                    ->with('warning', 'Please verify your email address to continue. Check your inbox for the verification link.');
+            }
 
-}
+            // Second check: Account active status (after email is verified)
+            if (!$user->is_active) {
+                Auth::logout();
+                return back()->with('error', 'Your account is pending approval by the administrator. You will be notified once approved.');
+            }
 
-// If email not verified yet, redirect to verification notice
-if (!$user->hasVerifiedEmail()) {
-    Auth::logout();
-    return redirect()->route('verification.notice');
-}
-            
             // Log the login
-            AuditLogService::logLogin($user->id);
-            
+            AuditLogService::logLogin($user->id());
+
             // Redirect based on role
             return match($user->role) {
                 'super_admin' => redirect()->route('super-admin.users.index'),
@@ -71,7 +71,7 @@ if (!$user->hasVerifiedEmail()) {
                 default => redirect()->route('rep.dashboard'),
             };
         }
-        
+
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
         ])->withInput($request->only('email'));

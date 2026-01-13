@@ -23,12 +23,15 @@ services:
     container_name: pharmacy_php
     volumes:
       - ./src:/var/www/html
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     environment:
       DB_HOST: mysql
       DB_PORT: 3306
       DB_DATABASE: pharmacy_db
       DB_USERNAME: pharmacy_user
       DB_PASSWORD: pharmacy_pass
+      TZ: Asia/Kuwait
     depends_on:
       - mysql
     networks:
@@ -45,8 +48,11 @@ services:
       MYSQL_DATABASE: pharmacy_db
       MYSQL_USER: pharmacy_user
       MYSQL_PASSWORD: pharmacy_pass
+      TZ: Asia/Kuwait
     volumes:
       - mysql_data:/var/lib/mysql
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     networks:
       - pharmacy_network
     command: --default-authentication-plugin=mysql_native_password
