@@ -40,6 +40,7 @@ class UserController extends Controller
                 $q->where('name', 'like', '%' . $request->search . '%')
                   ->orWhere('email', 'like', '%' . $request->search . '%')
                   ->orWhere('civil_id', 'like', '%' . $request->search . '%')
+                  ->orWhere('mobile_number', 'like', '%' . $request->search . '%')
                   ->orWhere('company', 'like', '%' . $request->search . '%');
             });
         }

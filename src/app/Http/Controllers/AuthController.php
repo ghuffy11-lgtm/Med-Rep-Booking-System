@@ -119,6 +119,7 @@ if (!$user->hasVerifiedEmail()) {
             'civil_id.size'                => 'Civil ID must be exactly 12 digits.',
             'civil_id.unique'              => 'This Civil ID is already registered.',
             'mobile_number.required'       => 'Mobile number is required.',
+            'mobile_number.max'            => 'Mobile number cannot exceed 20 characters.',
             'mobile_number.unique'         => 'This mobile number is already registered.',
             'h-captcha-response.required'  => 'Please complete the captcha verification.',
         ]);

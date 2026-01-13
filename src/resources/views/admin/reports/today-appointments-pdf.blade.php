@@ -177,13 +177,13 @@
     <table class="appointments">
         <thead>
             <tr>
-                <th style="width: 5%;">#</th>
-                <th style="width: 10%;">Time</th>
-                <th style="width: 12%;">Date</th>
-                <th style="width: 23%;">Representative Name</th>
-                <th style="width: 18%;">Company</th>
-                <th style="width: 18%;">Department</th>
-                <th style="width: 18%;">Contact</th>
+                <th style="width: 4%;">#</th>
+                <th style="width: 9%;">Time</th>
+                <th style="width: 11%;">Date</th>
+                <th style="width: 20%;">Representative Name</th>
+                <th style="width: 17%;">Company</th>
+                <th style="width: 17%;">Department</th>
+                <th style="width: 22%;">Contact</th>
             </tr>
         </thead>
         <tbody>
@@ -195,7 +195,12 @@
                 <td><strong>{{ $appointment->user->name }}</strong></td>
                 <td>{{ $appointment->user->company }}</td>
                 <td>{{ $appointment->department->name }}</td>
-                <td style="font-size: 8pt;">{{ $appointment->user->email }}</td>
+                <td style="font-size: 8pt;">
+                    @if($appointment->user->mobile_number)
+                        {{ $appointment->user->mobile_number }}<br>
+                    @endif
+                    {{ $appointment->user->email }}
+                </td>
             </tr>
             @endforeach
         </tbody>

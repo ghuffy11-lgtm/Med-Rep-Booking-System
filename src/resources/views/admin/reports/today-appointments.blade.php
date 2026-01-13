@@ -132,12 +132,12 @@
                 <thead class="table-light">
                     <tr>
                         <th style="width: 5%;">#</th>
-                        <th style="width: 12%;">Date</th>
-                        <th style="width: 10%;">Time</th>
-                        <th style="width: 25%;">Representative Name</th>
-                        <th style="width: 20%;">Company</th>
-                        <th style="width: 20%;">Department</th>
-                        <th style="width: 15%;">Contact</th>
+                        <th style="width: 10%;">Date</th>
+                        <th style="width: 8%;">Time</th>
+                        <th style="width: 20%;">Representative Name</th>
+                        <th style="width: 18%;">Company</th>
+                        <th style="width: 18%;">Department</th>
+                        <th style="width: 21%;">Contact</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -152,7 +152,10 @@
                             <i class="bi bi-hospital"></i> {{ $appointment->department->name }}
                         </td>
                         <td>
-                            <small>{{ $appointment->user->email }}</small>
+                            @if($appointment->user->mobile_number)
+                                <small><i class="bi bi-phone"></i> {{ $appointment->user->mobile_number }}</small><br>
+                            @endif
+                            <small><i class="bi bi-envelope"></i> {{ $appointment->user->email }}</small>
                         </td>
                     </tr>
                     @endforeach

@@ -173,13 +173,16 @@
                 </div>
 
                 <div class="col-md-6 mb-3">
-                    <label for="phone" class="form-label">Phone</label>
-                    <input type="text"
-                           class="form-control @error('phone') is-invalid @enderror"
-                           id="phone"
-                           name="phone"
-                           value="{{ old('phone', $user->phone) }}">
-                    @error('phone')
+                    <label for="mobile_number" class="form-label">Mobile Number</label>
+                    <input type="tel"
+                           class="form-control @error('mobile_number') is-invalid @enderror"
+                           id="mobile_number"
+                           name="mobile_number"
+                           value="{{ old('mobile_number', $user->mobile_number) }}"
+                           placeholder="+965 12345678"
+                           inputmode="tel">
+                    <small class="text-muted">Required for representatives</small>
+                    @error('mobile_number')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
