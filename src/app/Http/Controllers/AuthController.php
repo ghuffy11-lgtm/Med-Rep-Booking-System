@@ -49,15 +49,16 @@ class AuthController extends Controller
 
             // First check: Email verification (must be verified before checking active status)
             if (!$user->hasVerifiedEmail()) {
+                $request->session()->flash('warning', 'Please verify your email address to continue. Check your inbox for the verification link.');
                 Auth::logout();
-                return redirect()->route('verification.notice')
-                    ->with('warning', 'Please verify your email address to continue. Check your inbox for the verification link.');
+                return redirect()->route('login');
             }
 
             // Second check: Account active status (after email is verified)
             if (!$user->is_active) {
+                $request->session()->flash('error', 'Your account is pending approval by the administrator. You will be notified once approved.');
                 Auth::logout();
-                return back()->with('error', 'Your account is pending approval by the administrator. You will be notified once approved.');
+                return redirect()->route('login');
             }
 
             // Log the login
