@@ -296,6 +296,22 @@
                 </div>
             @endif
 
+            <!-- Error Session Message -->
+            @if(session('error'))
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            <!-- Warning Message -->
+            @if(session('warning'))
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    {{ session('warning') }}
+                </div>
+            @endif
+
             <!-- Info Message -->
             @if(session('info'))
                 <div class="alert alert-info">
@@ -304,7 +320,7 @@
                 </div>
             @endif
 
-            <!-- Error Message -->
+            <!-- Validation Errors -->
             @if($errors->any())
                 <div class="alert alert-danger">
                     <i class="bi bi-exclamation-triangle"></i>
