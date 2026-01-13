@@ -161,10 +161,10 @@
             </div>
 
             <div class="form-floating">
-                <input type="tel" class="form-control @error('mobile_number') is-invalid @enderror" id="mobile_number" name="mobile_number" value="{{ old('mobile_number') }}" placeholder="Mobile Number" inputmode="tel" required>
-                <label for="mobile_number"><i class="bi bi-phone"></i> Mobile Number</label>
+                <input type="tel" class="form-control @error('mobile_number') is-invalid @enderror" id="mobile_number" name="mobile_number" value="{{ old('mobile_number') }}" placeholder="Mobile Number" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" required>
+                <label for="mobile_number"><i class="bi bi-phone"></i> Mobile Number (8 digits)</label>
                 @error('mobile_number') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                <small class="text-muted">Enter with country code</small>
+                <small class="text-muted">Enter exactly 8 digits</small>
             </div>
 
             <div class="form-floating position-relative">
@@ -172,6 +172,7 @@
                 <label for="password"><i class="bi bi-lock"></i> Password</label>
                 <i class="bi bi-eye-slash toggle-password" id="togglePassword"></i>
                 @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <small class="text-muted">Must contain uppercase, lowercase and numbers</small>
             </div>
 
             <div class="form-floating position-relative">

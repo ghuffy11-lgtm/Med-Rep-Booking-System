@@ -109,17 +109,18 @@ if (!$user->hasVerifiedEmail()) {
         $request->validate([
             'name'                 => 'required|string|max:255',
             'email'                => 'required|email|unique:users,email',
-            'password'             => ['required', 'confirmed', Password::min(8)],
+            'password'             => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()],
             'company'              => 'required|string|max:255',
             'civil_id'             => 'required|string|size:12|unique:users,civil_id|regex:/^[0-9]{12}$/',
-            'mobile_number'        => 'required|string|max:20|unique:users,mobile_number',
+            'mobile_number'        => 'required|string|size:8|regex:/^[0-9]{8}$/|unique:users,mobile_number',
             'h-captcha-response'   => 'required',
         ], [
             'civil_id.regex'               => 'Civil ID must be exactly 12 digits.',
             'civil_id.size'                => 'Civil ID must be exactly 12 digits.',
             'civil_id.unique'              => 'This Civil ID is already registered.',
             'mobile_number.required'       => 'Mobile number is required.',
-            'mobile_number.max'            => 'Mobile number cannot exceed 20 characters.',
+            'mobile_number.size'           => 'Mobile number must be exactly 8 digits.',
+            'mobile_number.regex'          => 'Mobile number must contain only numbers.',
             'mobile_number.unique'         => 'This mobile number is already registered.',
             'h-captcha-response.required'  => 'Please complete the captcha verification.',
         ]);

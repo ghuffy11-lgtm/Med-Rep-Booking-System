@@ -136,7 +136,7 @@
 
     <div class="mb-3">
         <label for="mobile_number" class="form-label">
-            <i class="bi bi-phone"></i> Mobile Number
+            <i class="bi bi-phone"></i> Mobile Number (8 digits)
         </label>
         <input
             type="tel"
@@ -144,11 +144,13 @@
             id="mobile_number"
             name="mobile_number"
             value="{{ old('mobile_number') }}"
-            placeholder="+965 12345678"
-            inputmode="tel"
+            placeholder="12345678"
+            inputmode="numeric"
+            pattern="[0-9]{8}"
+            maxlength="8"
             required
         >
-        <small class="form-text text-muted">Enter your mobile number with country code</small>
+        <small class="form-text text-muted">Enter exactly 8 digits</small>
         @error('mobile_number')
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror
@@ -173,6 +175,7 @@
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>
+        <small class="form-text text-muted">Must contain uppercase, lowercase letters and numbers</small>
     </div>
 
     <div class="mb-4">
