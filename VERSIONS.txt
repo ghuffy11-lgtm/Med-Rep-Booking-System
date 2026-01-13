@@ -2,7 +2,18 @@
 MED REP BOOKING SYSTEM - VERSION HISTORY
 ===========================================
 
-Latest Version: v1.1 (January 12, 2026)
+Latest Version: v1.2 (January 12, 2026)
+Commit: bbc94cc
+
+Changes:
+- Fixed: "Undefined variable $booking" error on My Bookings page
+- Restored complete index.blade.php with proper bookings list
+- Modals now properly defined inside booking loop
+- Works on both mobile and desktop
+
+---
+
+Version: v1.1 (January 12, 2026)
 Commit: 07aaf15
 
 Changes:
