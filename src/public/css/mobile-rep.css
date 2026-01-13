@@ -365,11 +365,14 @@
     }
 
     .rep-mobile-view .modal-header {
-        padding: 20px;
+        padding: 50px 15px 15px 15px !important;
         border-bottom: 2px solid #dee2e6;
         position: relative;
         border-radius: 20px 20px 0 0;
         flex-shrink: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
     /* Drag handle indicator at top of modal */
@@ -386,22 +389,27 @@
     }
 
     .rep-mobile-view .modal-title {
-        font-size: 20px !important;
+        font-size: 18px !important;
         font-weight: 600;
-        margin-top: 10px;
+        text-align: center !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
 
-    /* Make close button large and easily tappable */
+    /* Make close button large and easily tappable - positioned at top right */
     .rep-mobile-view .modal-header .btn-close {
-        font-size: 24px !important;
-        width: 48px !important;
-        height: 48px !important;
+        font-size: 20px !important;
+        width: 44px !important;
+        height: 44px !important;
         padding: 0 !important;
         margin: 0 !important;
         opacity: 1 !important;
-        position: relative;
+        position: absolute !important;
+        top: 10px !important;
+        right: 10px !important;
         z-index: 9999 !important;
-        background-size: 20px !important;
+        background-size: 18px !important;
     }
 
     .rep-mobile-view .modal-body {
