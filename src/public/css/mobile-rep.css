@@ -346,19 +346,22 @@
        ======================================== */
 
     .rep-mobile-view .modal-dialog {
-        margin: 10vh auto 0 auto !important;
+        margin: 5vh auto 0 auto !important;
         max-width: 100% !important;
-        height: 90vh !important;
+        height: auto !important;
+        max-height: 85vh !important;
         display: flex;
         align-items: flex-end;
     }
 
     .rep-mobile-view .modal-content {
         height: auto !important;
-        max-height: 90vh;
+        max-height: 85vh !important;
         border: none;
         border-radius: 20px 20px 0 0 !important;
         box-shadow: 0 -5px 30px rgba(0,0,0,0.3);
+        display: flex;
+        flex-direction: column;
     }
 
     .rep-mobile-view .modal-header {
@@ -366,6 +369,7 @@
         border-bottom: 2px solid #dee2e6;
         position: relative;
         border-radius: 20px 20px 0 0;
+        flex-shrink: 0;
     }
 
     /* Drag handle indicator at top of modal */
@@ -404,12 +408,14 @@
         padding: 24px;
         font-size: 16px;
         overflow-y: auto;
-        max-height: 60vh;
+        max-height: calc(85vh - 180px);
+        flex: 1 1 auto;
     }
 
     .rep-mobile-view .modal-footer {
         padding: 20px;
         border-top: 2px solid #dee2e6;
+        flex-shrink: 0;
     }
 
     /* Make backdrop darker and more obvious */
