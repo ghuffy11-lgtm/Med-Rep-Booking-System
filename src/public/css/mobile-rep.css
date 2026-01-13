@@ -346,8 +346,8 @@
        ======================================== */
 
     .rep-mobile-view .modal-dialog {
-        margin: 5vh auto 0 auto !important;
-        max-width: 100% !important;
+        margin: 5vh 20px 0 20px !important;  /* Add 20px margins on left and right */
+        max-width: calc(100% - 40px) !important;  /* Account for margins */
         height: auto !important;
         max-height: 85vh !important;
         display: flex;
@@ -358,14 +358,14 @@
         height: auto !important;
         max-height: 85vh !important;
         border: none;
-        border-radius: 20px 20px 0 0 !important;
+        border-radius: 20px !important;  /* Rounded all corners now */
         box-shadow: 0 -5px 30px rgba(0,0,0,0.3);
         display: flex;
         flex-direction: column;
     }
 
     .rep-mobile-view .modal-header {
-        padding: 50px 15px 15px 15px !important;
+        padding: 50px 10px 15px 10px !important;  /* Reduced side padding */
         border-bottom: 2px solid #dee2e6;
         position: relative;
         border-radius: 20px 20px 0 0;
@@ -389,39 +389,42 @@
     }
 
     .rep-mobile-view .modal-title {
-        font-size: 18px !important;
+        font-size: 16px !important;  /* Smaller font */
         font-weight: 600;
         text-align: center !important;
         width: 100% !important;
-        padding: 0 !important;
+        padding: 0 5px !important;  /* Small side padding */
         margin: 0 !important;
+        line-height: 1.3 !important;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 
     /* Make close button large and easily tappable - positioned at top right */
     .rep-mobile-view .modal-header .btn-close {
-        font-size: 20px !important;
-        width: 44px !important;
-        height: 44px !important;
+        font-size: 18px !important;
+        width: 40px !important;
+        height: 40px !important;
         padding: 0 !important;
         margin: 0 !important;
         opacity: 1 !important;
         position: absolute !important;
-        top: 10px !important;
-        right: 10px !important;
+        top: 8px !important;
+        right: 8px !important;
         z-index: 9999 !important;
-        background-size: 18px !important;
+        background-size: 16px !important;
     }
 
     .rep-mobile-view .modal-body {
-        padding: 24px;
-        font-size: 16px;
+        padding: 20px 15px !important;  /* Reduced padding */
+        font-size: 15px !important;  /* Slightly smaller */
         overflow-y: auto;
         max-height: calc(85vh - 180px);
         flex: 1 1 auto;
     }
 
     .rep-mobile-view .modal-footer {
-        padding: 20px;
+        padding: 15px !important;  /* Reduced padding */
         border-top: 2px solid #dee2e6;
         flex-shrink: 0;
     }
