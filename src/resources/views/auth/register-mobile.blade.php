@@ -172,7 +172,7 @@
                 <label for="password"><i class="bi bi-lock"></i> Password</label>
                 <i class="bi bi-eye-slash toggle-password" id="togglePassword"></i>
                 @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                <small class="text-muted">Must contain uppercase, lowercase and numbers</small>
+                <small class="text-muted">Min 8 chars: uppercase, lowercase, numbers & special (!@#$)</small>
             </div>
 
             <div class="form-floating position-relative">

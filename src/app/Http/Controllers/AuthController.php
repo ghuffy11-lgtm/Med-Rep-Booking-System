@@ -109,7 +109,7 @@ if (!$user->hasVerifiedEmail()) {
         $request->validate([
             'name'                 => 'required|string|max:255',
             'email'                => 'required|email|unique:users,email',
-            'password'             => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()],
+            'password'             => ['required', 'confirmed', Password::min(8)->max(64)->mixedCase()->numbers()->symbols()],
             'company'              => 'required|string|max:255',
             'civil_id'             => 'required|string|size:12|unique:users,civil_id|regex:/^[0-9]{12}$/',
             'mobile_number'        => 'required|string|size:8|regex:/^[0-9]{8}$/|unique:users,mobile_number',
