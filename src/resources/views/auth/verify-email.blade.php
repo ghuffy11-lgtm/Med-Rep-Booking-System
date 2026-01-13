@@ -10,10 +10,12 @@
                 <h4 class="mb-0"><i class="bi bi-envelope-exclamation"></i> Verify Your Email Address</h4>
             </div>
             <div class="card-body p-4">
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i>
-                    Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you?
-                </div>
+                @if (session('warning'))
+                    <div class="alert alert-warning alert-dismissible fade show">
+                        <i class="bi bi-exclamation-triangle"></i> {{ session('warning') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
 
                 @if (session('info'))
                     <div class="alert alert-success alert-dismissible fade show">
@@ -21,6 +23,11 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif
+
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you?
+                </div>
 
                 <p class="mb-4">
                     If you didn't receive the email, we will gladly send you another.

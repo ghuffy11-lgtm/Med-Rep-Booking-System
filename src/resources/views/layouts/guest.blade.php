@@ -162,14 +162,28 @@
                         {{ session('success') }}
                     </div>
                 @endif
-                
+
                 @if(session('error'))
                     <div class="alert alert-danger" role="alert">
                         <i class="bi bi-exclamation-circle"></i>
                         {{ session('error') }}
                     </div>
                 @endif
-                
+
+                @if(session('warning'))
+                    <div class="alert alert-warning" role="alert">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        {{ session('warning') }}
+                    </div>
+                @endif
+
+                @if(session('info'))
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle"></i>
+                        {{ session('info') }}
+                    </div>
+                @endif
+
                 @yield('content')
             </div>
             
