@@ -628,19 +628,19 @@
    MODAL Z-INDEX FIX - MOBILE ONLY
    ======================================== */
 .rep-mobile-view .modal-backdrop {
-    z-index: 1055 !important;
+    z-index: 1200 !important; /* Above menu button (1100) */
 }
 
 .rep-mobile-view .modal.show {
-    z-index: 1060 !important;
+    z-index: 1300 !important; /* Highest layer */
 }
 
 .rep-mobile-view .modal.show .modal-dialog {
-    z-index: 1061 !important;
+    z-index: 1301 !important;
 }
 
 .rep-mobile-view .modal.show .modal-content {
-    z-index: 1062 !important;
+    z-index: 1302 !important;
     position: relative;
 }
 
@@ -648,4 +648,25 @@
 .rep-mobile-view .modal .btn-close {
     z-index: 9999 !important;
     touch-action: manipulation !important;
+}
+
+/* Hide menu button when modal is open */
+.rep-mobile-view.modal-open .mobile-menu-toggle {
+    display: none !important;
+}
+
+/* Prevent body scroll when modal is open */
+.rep-mobile-view.modal-open {
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+}
+
+/* Hide sidebar when modal is open */
+.rep-mobile-view.modal-open .sidebar {
+    display: none !important;
+}
+
+.rep-mobile-view.modal-open .sidebar-overlay {
+    display: none !important;
 }

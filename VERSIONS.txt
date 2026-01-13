@@ -2,7 +2,21 @@
 MED REP BOOKING SYSTEM - VERSION HISTORY
 ===========================================
 
-Latest Version: v1.3 (January 12, 2026)
+Latest Version: v1.4 (January 12, 2026)
+Commit: 7f11515
+
+Changes:
+- Fixed: Mobile modal now works on REAL iPhone devices (not just desktop mobile view)
+- Menu button no longer interferes with modal (hidden when modal open)
+- Sidebar automatically closes when modal opens
+- iOS-specific touch event handlers for backdrop and close button
+- Proper body scroll locking (fixes iOS scroll issues)
+- Z-index increased above all navigation elements
+- Tested and working on actual iPhone
+
+---
+
+Version: v1.3 (January 12, 2026)
 Commit: e6e2fc2
 
 Changes:
@@ -11,7 +25,7 @@ Changes:
 - Large 48x48px close button for easy tapping
 - Visual drag handle indicator
 - Darker backdrop for better UX
-- View Reason modal now works perfectly on mobile
+- View Reason modal now works perfectly on mobile (desktop mobile view)
 
 ---
 

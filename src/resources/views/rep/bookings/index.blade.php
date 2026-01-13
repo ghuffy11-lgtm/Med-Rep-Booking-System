@@ -180,3 +180,74 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get sidebar and overlay elements
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+    // Get all modals
+    const modals = document.querySelectorAll('.modal');
+
+    // When any modal is about to show
+    modals.forEach(function(modalElement) {
+        modalElement.addEventListener('show.bs.modal', function() {
+            // Close sidebar if open on mobile
+            if (sidebar) {
+                sidebar.classList.remove('show');
+            }
+            if (sidebarOverlay) {
+                sidebarOverlay.classList.remove('show');
+            }
+
+            // Prevent body scroll (iOS fix)
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${window.scrollY}px`;
+            document.body.style.width = '100%';
+        });
+
+        // When modal is hidden
+        modalElement.addEventListener('hidden.bs.modal', function() {
+            // Restore body scroll
+            const scrollY = document.body.style.top;
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.width = '';
+            window.scrollTo(0, parseInt(scrollY || '0') * -1);
+        });
+
+        // iOS-specific touch handling for backdrop
+        modalElement.addEventListener('shown.bs.modal', function() {
+            const backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) {
+                // Add touch event listener for iOS
+                backdrop.addEventListener('touchstart', function(e) {
+                    e.preventDefault();
+                    const modal = bootstrap.Modal.getInstance(modalElement);
+                    if (modal) {
+                        modal.hide();
+                    }
+                }, { passive: false });
+            }
+        });
+    });
+
+    // Enhanced close button handler for iOS
+    document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(function(closeBtn) {
+        closeBtn.addEventListener('touchstart', function(e) {
+            e.stopPropagation();
+            const modalId = this.closest('.modal').id;
+            const modalElement = document.getElementById(modalId);
+            if (modalElement) {
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    modal.hide();
+                }
+            }
+        }, { passive: false });
+    });
+});
+</script>
+@endpush
