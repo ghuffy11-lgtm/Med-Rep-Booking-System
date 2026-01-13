@@ -2,7 +2,22 @@
 MED REP BOOKING SYSTEM - VERSION HISTORY
 ===========================================
 
-Latest Version: v1.5 (January 12, 2026)
+Latest Version: v1.6 (January 12, 2026)
+Commit: 14512a3
+
+Changes:
+- Fixed: Modal now narrower to fit iPhone screen width properly
+- Added 20px margins on left and right sides
+- Reduced title font size to 16px for better fit
+- Reduced all internal padding for more compact layout
+- Close button smaller but still easy to tap (40x40px)
+- Word-wrap enabled for long titles
+- Modal no longer stretches edge-to-edge
+- Centered on screen with rounded corners
+
+---
+
+Version: v1.5 (January 12, 2026)
 Commit: d6689ab
 
 Changes:
