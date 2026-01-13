@@ -61,7 +61,7 @@ class AuthController extends Controller
             }
 
             // Log the login
-            AuditLogService::logLogin($user->id());
+            AuditLogService::logLogin($user->id);
 
             // Redirect based on role
             return match($user->role) {
