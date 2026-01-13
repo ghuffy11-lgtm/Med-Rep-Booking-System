@@ -2,7 +2,20 @@
 MED REP BOOKING SYSTEM - VERSION HISTORY
 ===========================================
 
-Latest Version: v1.2 (January 12, 2026)
+Latest Version: v1.3 (January 12, 2026)
+Commit: e6e2fc2
+
+Changes:
+- Fixed: Mobile modal now fully dismissible and responsive
+- Changed to slide-up bottom sheet design (from fullscreen)
+- Large 48x48px close button for easy tapping
+- Visual drag handle indicator
+- Darker backdrop for better UX
+- View Reason modal now works perfectly on mobile
+
+---
+
+Version: v1.2 (January 12, 2026)
 Commit: bbc94cc
 
 Changes:
