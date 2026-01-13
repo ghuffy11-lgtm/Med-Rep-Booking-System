@@ -342,43 +342,79 @@
     }
     
     /* ========================================
-       MODALS - FULL SCREEN ON MOBILE
+       MODALS - SLIDE-UP PANEL ON MOBILE
        ======================================== */
-    
-    .rep-mobile-view .modal-dialog {
-        margin: 0 !important;
-        max-width: 100% !important;
-        height: 100vh;
-        z-index: 1060 !important; /* ADD THIS */
 
+    .rep-mobile-view .modal-dialog {
+        margin: 10vh auto 0 auto !important;
+        max-width: 100% !important;
+        height: 90vh !important;
+        display: flex;
+        align-items: flex-end;
     }
-    
+
     .rep-mobile-view .modal-content {
-        height: 100vh;
+        height: auto !important;
+        max-height: 90vh;
         border: none;
-        border-radius: 0;
-        z-index: 1060 !important; /* ADD THIS */
+        border-radius: 20px 20px 0 0 !important;
+        box-shadow: 0 -5px 30px rgba(0,0,0,0.3);
     }
-    
+
     .rep-mobile-view .modal-header {
         padding: 20px;
         border-bottom: 2px solid #dee2e6;
+        position: relative;
+        border-radius: 20px 20px 0 0;
     }
-    
+
+    /* Drag handle indicator at top of modal */
+    .rep-mobile-view .modal-header::before {
+        content: '';
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 4px;
+        background: #dee2e6;
+        border-radius: 2px;
+    }
+
     .rep-mobile-view .modal-title {
         font-size: 20px !important;
         font-weight: 600;
+        margin-top: 10px;
     }
-    
+
+    /* Make close button large and easily tappable */
+    .rep-mobile-view .modal-header .btn-close {
+        font-size: 24px !important;
+        width: 48px !important;
+        height: 48px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        opacity: 1 !important;
+        position: relative;
+        z-index: 9999 !important;
+        background-size: 20px !important;
+    }
+
     .rep-mobile-view .modal-body {
         padding: 24px;
         font-size: 16px;
         overflow-y: auto;
+        max-height: 60vh;
     }
-    
+
     .rep-mobile-view .modal-footer {
         padding: 20px;
         border-top: 2px solid #dee2e6;
+    }
+
+    /* Make backdrop darker and more obvious */
+    .rep-mobile-view .modal-backdrop {
+        background-color: rgba(0, 0, 0, 0.7) !important;
     }
     
     /* ========================================
@@ -597,4 +633,19 @@
 
 .rep-mobile-view .modal.show {
     z-index: 1060 !important;
+}
+
+.rep-mobile-view .modal.show .modal-dialog {
+    z-index: 1061 !important;
+}
+
+.rep-mobile-view .modal.show .modal-content {
+    z-index: 1062 !important;
+    position: relative;
+}
+
+/* Ensure close button is always on top */
+.rep-mobile-view .modal .btn-close {
+    z-index: 9999 !important;
+    touch-action: manipulation !important;
 }
