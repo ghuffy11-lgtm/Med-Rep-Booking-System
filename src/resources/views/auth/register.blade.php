@@ -135,6 +135,26 @@
     </div>
 
     <div class="mb-3">
+        <label for="mobile_number" class="form-label">
+            <i class="bi bi-phone"></i> Mobile Number
+        </label>
+        <input
+            type="tel"
+            class="form-control @error('mobile_number') is-invalid @enderror"
+            id="mobile_number"
+            name="mobile_number"
+            value="{{ old('mobile_number') }}"
+            placeholder="+965 12345678"
+            inputmode="tel"
+            required
+        >
+        <small class="form-text text-muted">Enter your mobile number with country code</small>
+        @error('mobile_number')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    </div>
+
+    <div class="mb-3">
         <label for="password" class="form-label">
             <i class="bi bi-lock"></i> Password
         </label>
