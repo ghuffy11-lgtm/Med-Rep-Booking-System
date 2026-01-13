@@ -170,15 +170,17 @@
                 </div>
 
                 <div class="col-md-6 mb-3">
-                    <label for="mobile_number" class="form-label">Mobile Number</label>
+                    <label for="mobile_number" class="form-label">Mobile Number (8 digits)</label>
                     <input type="tel"
                            class="form-control @error('mobile_number') is-invalid @enderror"
                            id="mobile_number"
                            name="mobile_number"
                            value="{{ old('mobile_number') }}"
-                           placeholder="+965 12345678"
-                           inputmode="tel">
-                    <small class="text-muted">Required for representatives</small>
+                           placeholder="12345678"
+                           inputmode="numeric"
+                           pattern="[0-9]{8}"
+                           maxlength="8">
+                    <small class="text-muted">Required for representatives (8 digits only)</small>
                     @error('mobile_number')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror

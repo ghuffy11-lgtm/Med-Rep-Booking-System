@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Add mobile_number field after civil_id
-            $table->string('mobile_number', 20)->unique()->nullable()->after('civil_id');
+            // Add mobile_number field after civil_id (8 digits only)
+            $table->string('mobile_number', 8)->unique()->nullable()->after('civil_id');
 
             // Add index for mobile_number
             $table->index('mobile_number');
