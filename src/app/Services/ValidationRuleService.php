@@ -144,8 +144,8 @@ class ValidationRuleService
                 'max:255',
                 Rule::unique('users')->ignore($userId),
             ],
-            'password' => $userId 
-                ? 'nullable|string|min:8|confirmed' 
+            'password' => $userId
+                ? 'nullable|string|min:8|confirmed'
                 : 'required|string|min:8|confirmed',
             'role' => [
                 'required',
@@ -157,6 +157,13 @@ class ValidationRuleService
                 'nullable',
                 'string',
                 'size:12',
+                Rule::unique('users')->ignore($userId),
+            ],
+            'mobile_number' => [
+                'required_if:role,representative',
+                'nullable',
+                'string',
+                'max:20',
                 Rule::unique('users')->ignore($userId),
             ],
             'is_active' => 'required|boolean',
@@ -271,6 +278,9 @@ public static function globalConfigRules(): array
             'civil_id.size' => 'Civil ID must be exactly 12 digits.',
             'civil_id.regex' => 'Civil ID must contain only numbers.',
             'civil_id.unique' => 'This Civil ID is already registered.',
+            'mobile_number.required_if' => 'Mobile number is required for representatives.',
+            'mobile_number.max' => 'Mobile number cannot exceed 20 characters.',
+            'mobile_number.unique' => 'This mobile number is already registered.',
             'email.unique' => 'This email address is already registered.',
             'password.min' => 'Password must be at least 8 characters.',
             'password.confirmed' => 'Password confirmation does not match.',

@@ -184,12 +184,12 @@
         <thead>
             <tr>
                 <th style="width: 5%;">#</th>
-                <th style="width: 12%;">Date</th>
-                <th style="width: 10%;">Time</th>
-                <th style="width: 25%;">Representative Name</th>
-                <th style="width: 20%;">Company</th>
-                <th style="width: 20%;">Department</th>
-                <th style="width: 15%;">Contact</th>
+                <th style="width: 10%;">Date</th>
+                <th style="width: 8%;">Time</th>
+                <th style="width: 20%;">Representative Name</th>
+                <th style="width: 18%;">Company</th>
+                <th style="width: 18%;">Department</th>
+                <th style="width: 21%;">Contact</th>
             </tr>
         </thead>
         <tbody>
@@ -201,7 +201,12 @@
                 <td><strong>{{ $appointment->user->name }}</strong></td>
                 <td>{{ $appointment->user->company }}</td>
                 <td>{{ $appointment->department->name }}</td>
-                <td>{{ $appointment->user->email }}</td>
+                <td style="font-size: 9pt;">
+                    @if($appointment->user->mobile_number)
+                        {{ $appointment->user->mobile_number }}<br>
+                    @endif
+                    {{ $appointment->user->email }}
+                </td>
             </tr>
             @endforeach
         </tbody>

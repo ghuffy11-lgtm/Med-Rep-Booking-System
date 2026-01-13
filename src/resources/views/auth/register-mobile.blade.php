@@ -160,6 +160,13 @@
                 <small class="text-muted">Enter 12 digits</small>
             </div>
 
+            <div class="form-floating">
+                <input type="tel" class="form-control @error('mobile_number') is-invalid @enderror" id="mobile_number" name="mobile_number" value="{{ old('mobile_number') }}" placeholder="Mobile Number" inputmode="tel" required>
+                <label for="mobile_number"><i class="bi bi-phone"></i> Mobile Number</label>
+                @error('mobile_number') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <small class="text-muted">Enter with country code</small>
+            </div>
+
             <div class="form-floating position-relative">
                 <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password" placeholder="Password" style="padding-right: 50px;" required>
                 <label for="password"><i class="bi bi-lock"></i> Password</label>

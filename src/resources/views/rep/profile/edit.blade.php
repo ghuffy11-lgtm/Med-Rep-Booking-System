@@ -56,14 +56,31 @@
                                 Civil ID
                                 <i class="bi bi-lock-fill text-muted" data-bs-toggle="tooltip" title="This field cannot be changed"></i>
                             </label>
-                            <input type="text" 
-                                   class="form-control bg-light" 
-                                   id="civil_id" 
-                                   value="{{ $user->civil_id }}" 
+                            <input type="text"
+                                   class="form-control bg-light"
+                                   id="civil_id"
+                                   value="{{ $user->civil_id }}"
                                    readonly
                                    disabled>
                             <small class="text-muted">
                                 <i class="bi bi-info-circle"></i> Contact administrator to change your Civil ID
+                            </small>
+                        </div>
+
+                        {{-- Mobile Number (Read-Only) --}}
+                        <div class="mb-3">
+                            <label for="mobile_number" class="form-label">
+                                Mobile Number
+                                <i class="bi bi-lock-fill text-muted" data-bs-toggle="tooltip" title="This field cannot be changed"></i>
+                            </label>
+                            <input type="tel"
+                                   class="form-control bg-light"
+                                   id="mobile_number"
+                                   value="{{ $user->mobile_number ?? 'Not provided' }}"
+                                   readonly
+                                   disabled>
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i> Contact administrator to change your mobile number
                             </small>
                         </div>
 
