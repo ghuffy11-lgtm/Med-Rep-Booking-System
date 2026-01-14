@@ -89,6 +89,8 @@
                     <tr>
                         <th>ID</th>
                         <th>Representative</th>
+                        <th>Mobile Number</th>
+                        <th>Civil ID</th>
                         <th>Department</th>
                         <th>Date & Time</th>
                         <th>Status</th>
@@ -102,6 +104,20 @@
                         <td>
                             <strong>{{ $booking->user->name }}</strong><br>
                             <small class="text-muted">{{ $booking->user->company }}</small>
+                        </td>
+                        <td>
+                            @if($booking->user->mobile_number)
+                                <i class="bi bi-phone"></i> {{ $booking->user->mobile_number }}
+                            @else
+                                <span class="text-muted">N/A</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($booking->user->civil_id)
+                                <code>{{ $booking->user->civil_id }}</code>
+                            @else
+                                <span class="text-muted">N/A</span>
+                            @endif
                         </td>
                         <td>{{ $booking->department->name }}</td>
                         <td>

@@ -53,6 +53,8 @@
                         <th>ID</th>
                         <th>Representative</th>
                         <th>Company</th>
+                        <th>Mobile Number</th>
+                        <th>Civil ID</th>
                         <th>Department</th>
                         <th>Date & Time</th>
                         <th>Requested</th>
@@ -68,6 +70,20 @@
                             <small class="text-muted">{{ $booking->user->email }}</small>
                         </td>
                         <td>{{ $booking->user->company }}</td>
+                        <td>
+                            @if($booking->user->mobile_number)
+                                <i class="bi bi-phone"></i> {{ $booking->user->mobile_number }}
+                            @else
+                                <span class="text-muted">N/A</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($booking->user->civil_id)
+                                <code>{{ $booking->user->civil_id }}</code>
+                            @else
+                                <span class="text-muted">N/A</span>
+                            @endif
+                        </td>
                         <td>
                             <i class="bi bi-hospital"></i>
                             {{ $booking->department->name }}
