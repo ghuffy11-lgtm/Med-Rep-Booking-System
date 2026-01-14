@@ -112,17 +112,20 @@ class MoveBookingTime extends Command
 
             // Log the change
             \App\Services\AuditLogService::log(
+                $booking,
                 'booking_time_moved',
-                auth()->id() ?? 0,
-                'Booking',
-                $booking->id,
                 [
-                    'old_date' => $oldDate,
-                    'new_date' => $booking->booking_date,
-                    'old_time' => $oldTime,
-                    'new_time' => $booking->time_slot,
+                    'booking_date' => $oldDate,
+                    'time_slot' => $oldTime,
                 ],
-                request()->ip() ?? 'CLI'
+                [
+                    'booking_date' => $booking->booking_date,
+                    'time_slot' => $booking->time_slot,
+                ],
+                [
+                    'changed_by' => 'CLI',
+                    'command' => 'booking:move-time',
+                ]
             );
 
             return Command::SUCCESS;
