@@ -131,13 +131,15 @@
             <table class="table table-hover table-bordered">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 5%;">#</th>
-                        <th style="width: 10%;">Date</th>
-                        <th style="width: 8%;">Time</th>
-                        <th style="width: 20%;">Representative Name</th>
-                        <th style="width: 18%;">Company</th>
-                        <th style="width: 18%;">Department</th>
-                        <th style="width: 21%;">Contact</th>
+                        <th style="width: 4%;">#</th>
+                        <th style="width: 9%;">Date</th>
+                        <th style="width: 7%;">Time</th>
+                        <th style="width: 16%;">Representative Name</th>
+                        <th style="width: 13%;">Company</th>
+                        <th style="width: 9%;">Mobile</th>
+                        <th style="width: 10%;">Civil ID</th>
+                        <th style="width: 16%;">Department</th>
+                        <th style="width: 16%;">Email</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -146,15 +148,26 @@
                         <td>{{ $index + 1 }}</td>
                         <td>{{ \Carbon\Carbon::parse($appointment->booking_date)->format('M j, Y') }}</td>
                         <td>{{ \Carbon\Carbon::parse($appointment->time_slot)->format('g:i A') }}</td>
-                        <td>{{ $appointment->user->name }}
+                        <td>{{ $appointment->user->name }}</td>
                         <td>{{ $appointment->user->company }}</td>
+                        <td>
+                            @if($appointment->user->mobile_number)
+                                <small><i class="bi bi-phone"></i> {{ $appointment->user->mobile_number }}</small>
+                            @else
+                                <span class="text-muted small">N/A</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($appointment->user->civil_id)
+                                <code class="small">{{ $appointment->user->civil_id }}</code>
+                            @else
+                                <span class="text-muted small">N/A</span>
+                            @endif
+                        </td>
                         <td>
                             <i class="bi bi-hospital"></i> {{ $appointment->department->name }}
                         </td>
                         <td>
-                            @if($appointment->user->mobile_number)
-                                <small><i class="bi bi-phone"></i> {{ $appointment->user->mobile_number }}</small><br>
-                            @endif
                             <small><i class="bi bi-envelope"></i> {{ $appointment->user->email }}</small>
                         </td>
                     </tr>

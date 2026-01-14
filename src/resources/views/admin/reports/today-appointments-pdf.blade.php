@@ -177,13 +177,15 @@
     <table class="appointments">
         <thead>
             <tr>
-                <th style="width: 4%;">#</th>
-                <th style="width: 9%;">Time</th>
-                <th style="width: 11%;">Date</th>
-                <th style="width: 20%;">Representative Name</th>
-                <th style="width: 17%;">Company</th>
-                <th style="width: 17%;">Department</th>
-                <th style="width: 22%;">Contact</th>
+                <th style="width: 3%;">#</th>
+                <th style="width: 9%;">Date</th>
+                <th style="width: 7%;">Time</th>
+                <th style="width: 16%;">Representative Name</th>
+                <th style="width: 13%;">Company</th>
+                <th style="width: 9%;">Mobile</th>
+                <th style="width: 11%;">Civil ID</th>
+                <th style="width: 16%;">Department</th>
+                <th style="width: 16%;">Email</th>
             </tr>
         </thead>
         <tbody>
@@ -194,11 +196,22 @@
                 <td><strong>{{ \Carbon\Carbon::parse($appointment->time_slot)->format('g:i A') }}</strong></td>
                 <td><strong>{{ $appointment->user->name }}</strong></td>
                 <td>{{ $appointment->user->company }}</td>
-                <td>{{ $appointment->department->name }}</td>
                 <td style="font-size: 8pt;">
                     @if($appointment->user->mobile_number)
-                        {{ $appointment->user->mobile_number }}<br>
+                        {{ $appointment->user->mobile_number }}
+                    @else
+                        N/A
                     @endif
+                </td>
+                <td style="font-size: 8pt;">
+                    @if($appointment->user->civil_id)
+                        {{ $appointment->user->civil_id }}
+                    @else
+                        N/A
+                    @endif
+                </td>
+                <td>{{ $appointment->department->name }}</td>
+                <td style="font-size: 8pt;">
                     {{ $appointment->user->email }}
                 </td>
             </tr>
