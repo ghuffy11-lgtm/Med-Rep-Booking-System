@@ -37,6 +37,8 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $hidden = [
         'password',
         'remember_token',
+        'google2fa_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**
@@ -71,6 +73,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function createdSchedules()
     {
         return $this->hasMany(Schedule::class, 'created_by');
+    }
+
+    public function trustedDevices()
+    {
+        return $this->hasMany(TrustedDevice::class);
     }
 
     /**
@@ -252,5 +259,156 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isRepresentative(): bool
     {
         return $this->role === 'representative';
+    }
+
+    /**
+     * Two-Factor Authentication Methods
+     */
+
+    /**
+     * Check if 2FA is enabled for this user
+     */
+    public function hasTwoFactorEnabled(): bool
+    {
+        return $this->google2fa_enabled === true && !empty($this->google2fa_secret);
+    }
+
+    /**
+     * Enable 2FA for the user
+     */
+    public function enableTwoFactor(string $secret): void
+    {
+        $this->google2fa_secret = encrypt($secret);
+        $this->google2fa_enabled = true;
+        $this->save();
+    }
+
+    /**
+     * Disable 2FA for the user
+     */
+    public function disableTwoFactor(): void
+    {
+        $this->google2fa_secret = null;
+        $this->google2fa_enabled = false;
+        $this->two_factor_recovery_codes = null;
+        $this->save();
+
+        // Remove all trusted devices
+        $this->trustedDevices()->delete();
+    }
+
+    /**
+     * Get decrypted 2FA secret
+     */
+    public function getTwoFactorSecret(): ?string
+    {
+        if (empty($this->google2fa_secret)) {
+            return null;
+        }
+
+        return decrypt($this->google2fa_secret);
+    }
+
+    /**
+     * Generate and store recovery codes
+     */
+    public function generateRecoveryCodes(): array
+    {
+        $codes = [];
+        for ($i = 0; $i < 8; $i++) {
+            $codes[] = strtoupper(bin2hex(random_bytes(5)));
+        }
+
+        $this->two_factor_recovery_codes = encrypt(json_encode($codes));
+        $this->save();
+
+        return $codes;
+    }
+
+    /**
+     * Get recovery codes
+     */
+    public function getRecoveryCodes(): array
+    {
+        if (empty($this->two_factor_recovery_codes)) {
+            return [];
+        }
+
+        return json_decode(decrypt($this->two_factor_recovery_codes), true);
+    }
+
+    /**
+     * Use a recovery code
+     */
+    public function useRecoveryCode(string $code): bool
+    {
+        $codes = $this->getRecoveryCodes();
+        $codeUpper = strtoupper($code);
+
+        if (!in_array($codeUpper, $codes)) {
+            return false;
+        }
+
+        // Remove the used code
+        $codes = array_values(array_diff($codes, [$codeUpper]));
+        $this->two_factor_recovery_codes = encrypt(json_encode($codes));
+        $this->save();
+
+        return true;
+    }
+
+    /**
+     * Check if device is trusted
+     */
+    public function hasDeviceTrusted(string $deviceToken): bool
+    {
+        return $this->trustedDevices()
+            ->where('device_token', $deviceToken)
+            ->active()
+            ->exists();
+    }
+
+    /**
+     * Trust a device
+     */
+    public function trustDevice(string $deviceName = null): string
+    {
+        // Clean up expired devices first
+        TrustedDevice::cleanExpiredForUser($this->id);
+
+        $deviceToken = bin2hex(random_bytes(32));
+
+        $this->trustedDevices()->create([
+            'device_token' => $deviceToken,
+            'device_name' => $deviceName ?? request()->header('User-Agent'),
+            'user_agent' => request()->header('User-Agent'),
+            'ip_address' => request()->ip(),
+            'last_used_at' => now(),
+            'expires_at' => now()->addDays(30),
+        ]);
+
+        return $deviceToken;
+    }
+
+    /**
+     * Update trusted device last used
+     */
+    public function updateTrustedDevice(string $deviceToken): void
+    {
+        $device = $this->trustedDevices()
+            ->where('device_token', $deviceToken)
+            ->first();
+
+        if ($device) {
+            $device->updateLastUsed();
+        }
+    }
+
+    /**
+     * Revoke all trusted devices
+     */
+    public function revokeAllTrustedDevices(): void
+    {
+        $this->trustedDevices()->delete();
     }
 }

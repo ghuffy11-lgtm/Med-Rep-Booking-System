@@ -56,6 +56,32 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // ========================================
+// TWO-FACTOR AUTHENTICATION ROUTES
+// ========================================
+use App\Http\Controllers\TwoFactorController;
+
+// 2FA Challenge (during login)
+Route::middleware('guest')->group(function () {
+    Route::get('/2fa/challenge', [TwoFactorController::class, 'show2FAChallenge'])->name('2fa.challenge');
+    Route::post('/2fa/verify', [TwoFactorController::class, 'verify2FA'])->name('2fa.verify');
+    Route::post('/2fa/verify-recovery', [TwoFactorController::class, 'verifyRecoveryCode'])->name('2fa.verify.recovery');
+});
+
+// 2FA Management (for authenticated users)
+Route::middleware('auth')->prefix('2fa')->name('2fa.')->group(function () {
+    Route::get('/setup', [TwoFactorController::class, 'show2FASetup'])->name('setup');
+    Route::post('/enable', [TwoFactorController::class, 'enable2FA'])->name('enable');
+    Route::post('/confirm', [TwoFactorController::class, 'confirm2FA'])->name('confirm');
+    Route::post('/disable', [TwoFactorController::class, 'disable2FA'])->name('disable');
+    Route::post('/recovery-codes/regenerate', [TwoFactorController::class, 'regenerateRecoveryCodes'])->name('recovery.regenerate');
+
+    // Trusted Devices Management
+    Route::get('/trusted-devices', [TwoFactorController::class, 'manageTrustedDevices'])->name('trusted-devices');
+    Route::delete('/trusted-devices/{device}', [TwoFactorController::class, 'revokeTrustedDevice'])->name('trusted-devices.revoke');
+    Route::post('/trusted-devices/revoke-all', [TwoFactorController::class, 'revokeAllTrustedDevices'])->name('trusted-devices.revoke-all');
+});
+
+// ========================================
 // EMAIL VERIFICATION ROUTES (NEW)
 // ========================================
 // Email verification notice (needs auth)
@@ -150,6 +176,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:pharmacy_admin
         Route::get('/today', [TodayAppointmentsController::class, 'index'])->name('today');
         Route::get('/today/pdf', [TodayAppointmentsController::class, 'pdf'])->name('today.pdf');
         Route::get('/today/print', [TodayAppointmentsController::class, 'print'])->name('today.print');
+    });
+
+    // Statistics Dashboard Routes (NEW)
+    Route::prefix('statistics')->name('statistics.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\StatisticsController::class, 'index'])->name('index');
+        Route::get('/export-excel', [\App\Http\Controllers\StatisticsController::class, 'exportExcel'])->name('export.excel');
+        Route::get('/export-pdf', [\App\Http\Controllers\StatisticsController::class, 'exportPdf'])->name('export.pdf');
     });
 
     // Schedule Management

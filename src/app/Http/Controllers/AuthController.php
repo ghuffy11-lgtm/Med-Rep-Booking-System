@@ -43,7 +43,7 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        if (Auth::attempt($credentials, $request->filled('remember'))) {
+        if (Auth::attempt($credentials, false)) {
             $request->session()->regenerate();
             $user = Auth::user();
 
@@ -61,8 +61,38 @@ class AuthController extends Controller
                 return redirect()->route('login');
             }
 
+            // Third check: Two-Factor Authentication (if enabled)
+            if ($user->hasTwoFactorEnabled()) {
+                // Check if device is trusted
+                $deviceToken = $request->cookie('trusted_device');
+                $isTrustedDevice = $deviceToken && $user->hasDeviceTrusted($deviceToken);
+
+                if (!$isTrustedDevice) {
+                    // Store user ID and remember preference in session
+                    session([
+                        '2fa:user:id' => $user->id,
+                        '2fa:remember' => $request->filled('remember'),
+                    ]);
+
+                    // Logout temporarily
+                    Auth::logout();
+
+                    // Redirect to 2FA challenge
+                    return redirect()->route('2fa.challenge')
+                        ->with('info', 'Please complete two-factor authentication.');
+                }
+
+                // Update last used time for trusted device
+                $user->updateTrustedDevice($deviceToken);
+            }
+
             // Log the login
             AuditLogService::logLogin($user->id);
+
+            // Apply remember me if requested
+            if ($request->filled('remember')) {
+                Auth::login($user, true);
+            }
 
             // Redirect based on role
             return match($user->role) {
