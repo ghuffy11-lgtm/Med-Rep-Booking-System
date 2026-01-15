@@ -60,6 +60,44 @@
         </div>
     </div>
 
+    <!-- Month/Year Selection Form -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ route('admin.statistics.index') }}" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label for="month" class="form-label"><strong>Select Month</strong></label>
+                    <select name="month" id="month" class="form-select">
+                        @foreach(range(1, 12) as $m)
+                            <option value="{{ $m }}" {{ $selectedMonth == $m ? 'selected' : '' }}>
+                                {{ date('F', mktime(0, 0, 0, $m, 1)) }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="year" class="form-label"><strong>Select Year</strong></label>
+                    <select name="year" id="year" class="form-select">
+                        @foreach(range(date('Y'), date('Y') - 5) as $y)
+                            <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>
+                                {{ $y }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> View Statistics
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <a href="{{ route('admin.statistics.index') }}" class="btn btn-secondary w-100">
+                        <i class="bi bi-arrow-counterclockwise"></i> Reset to Current Month
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Overview Cards -->
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-4">
