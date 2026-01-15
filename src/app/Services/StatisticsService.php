@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Booking;
 use App\Models\User;
-use App\Models\Pharmacy;
 use App\Models\Department;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +25,6 @@ class StatisticsService
             'bookings_today' => Booking::whereDate('booking_date', $startOfToday)->count(),
             'pending_approvals' => Booking::where('status', 'pending')->count(),
             'total_representatives' => User::where('role', 'representative')->where('is_active', 1)->count(),
-            'total_pharmacies' => Pharmacy::where('is_active', 1)->count(),
             'total_departments' => Department::where('is_active', 1)->count(),
             'approval_rate' => self::calculateApprovalRate(),
         ];
@@ -34,27 +32,23 @@ class StatisticsService
 
     /**
      * Get overview statistics for Pharmacy Admin
+     * Note: Currently shows all bookings (multi-pharmacy not implemented)
      */
-    public static function getPharmacyAdminOverview(int $pharmacyId): array
+    public static function getPharmacyAdminOverview(int $pharmacyId = null): array
     {
         $now = Carbon::now();
         $startOfMonth = $now->copy()->startOfMonth();
         $startOfToday = $now->copy()->startOfDay();
 
         return [
-            'total_bookings' => Booking::where('pharmacy_id', $pharmacyId)->count(),
-            'bookings_this_month' => Booking::where('pharmacy_id', $pharmacyId)
-                ->whereDate('created_at', '>=', $startOfMonth)->count(),
-            'bookings_today' => Booking::where('pharmacy_id', $pharmacyId)
-                ->whereDate('booking_date', $startOfToday)->count(),
-            'pending_approvals' => Booking::where('pharmacy_id', $pharmacyId)
-                ->where('status', 'pending')->count(),
-            'active_representatives' => Booking::where('pharmacy_id', $pharmacyId)
-                ->distinct('user_id')->count('user_id'),
-            'active_departments' => Department::where('pharmacy_id', $pharmacyId)
-                ->where('is_active', 1)->count(),
-            'approval_rate' => self::calculatePharmacyApprovalRate($pharmacyId),
-            'avg_response_time' => self::calculateAverageResponseTime($pharmacyId),
+            'total_bookings' => Booking::count(),
+            'bookings_this_month' => Booking::whereDate('created_at', '>=', $startOfMonth)->count(),
+            'bookings_today' => Booking::whereDate('booking_date', $startOfToday)->count(),
+            'pending_approvals' => Booking::where('status', 'pending')->count(),
+            'active_representatives' => Booking::distinct('user_id')->count('user_id'),
+            'active_departments' => Department::where('is_active', 1)->count(),
+            'approval_rate' => self::calculateApprovalRate(),
+            'avg_response_time' => self::calculateAverageResponseTime(),
         ];
     }
 
@@ -71,9 +65,7 @@ class StatisticsService
             ->groupBy('date')
             ->orderBy('date');
 
-        if ($pharmacyId) {
-            $query->where('pharmacy_id', $pharmacyId);
-        }
+        // Note: pharmacy_id filtering not available (multi-pharmacy not implemented)
 
         $bookings = $query->get()->keyBy('date');
 
@@ -101,9 +93,7 @@ class StatisticsService
         $query = Booking::selectRaw('status, COUNT(*) as count')
             ->groupBy('status');
 
-        if ($pharmacyId) {
-            $query->where('pharmacy_id', $pharmacyId);
-        }
+        // Note: pharmacy_id filtering not available (multi-pharmacy not implemented)
 
         $statuses = $query->get();
 
@@ -122,9 +112,7 @@ class StatisticsService
             ->groupBy('hour')
             ->orderBy('hour');
 
-        if ($pharmacyId) {
-            $query->where('pharmacy_id', $pharmacyId);
-        }
+        // Note: pharmacy_id filtering not available (multi-pharmacy not implemented)
 
         $hours = $query->get()->keyBy('hour');
 
@@ -145,22 +133,12 @@ class StatisticsService
 
     /**
      * Get top pharmacies by bookings
+     * Note: Pharmacy model not implemented yet - returns empty array
      */
     public static function getTopPharmacies(int $limit = 5): array
     {
-        return Pharmacy::select('pharmacies.*', DB::raw('COUNT(bookings.id) as bookings_count'))
-            ->leftJoin('bookings', 'pharmacies.id', '=', 'bookings.pharmacy_id')
-            ->where('pharmacies.is_active', 1)
-            ->groupBy('pharmacies.id')
-            ->orderByDesc('bookings_count')
-            ->limit($limit)
-            ->get()
-            ->map(function ($pharmacy) {
-                return [
-                    'name' => $pharmacy->name,
-                    'bookings_count' => $pharmacy->bookings_count,
-                ];
-            })->toArray();
+        // TODO: Implement when pharmacy model is available
+        return [];
     }
 
     /**
@@ -171,20 +149,16 @@ class StatisticsService
         $query = Department::select(
                 'departments.id',
                 'departments.name',
-                'pharmacies.name as pharmacy_name',
                 DB::raw('COUNT(bookings.id) as total_bookings'),
                 DB::raw('COUNT(CASE WHEN MONTH(bookings.created_at) = MONTH(NOW()) AND YEAR(bookings.created_at) = YEAR(NOW()) THEN 1 END) as this_month'),
                 DB::raw('COUNT(CASE WHEN MONTH(bookings.created_at) = MONTH(NOW() - INTERVAL 1 MONTH) AND YEAR(bookings.created_at) = YEAR(NOW() - INTERVAL 1 MONTH) THEN 1 END) as last_month')
             )
             ->leftJoin('bookings', 'departments.id', '=', 'bookings.department_id')
-            ->join('pharmacies', 'departments.pharmacy_id', '=', 'pharmacies.id')
             ->where('departments.is_active', 1);
 
-        if ($pharmacyId) {
-            $query->where('departments.pharmacy_id', $pharmacyId);
-        }
+        // Note: pharmacy_id filtering not available (multi-pharmacy not implemented)
 
-        return $query->groupBy('departments.id', 'departments.name', 'pharmacies.name')
+        return $query->groupBy('departments.id', 'departments.name')
             ->orderByDesc('total_bookings')
             ->limit($limit)
             ->get()
@@ -195,7 +169,6 @@ class StatisticsService
 
                 return [
                     'department' => $dept->name,
-                    'pharmacy' => $dept->pharmacy_name ?? 'N/A',
                     'total_bookings' => $dept->total_bookings,
                     'this_month' => $dept->this_month,
                     'last_month' => $dept->last_month,
@@ -223,9 +196,7 @@ class StatisticsService
             ->where('users.role', 'representative')
             ->where('users.is_active', 1);
 
-        if ($pharmacyId) {
-            $query->where('bookings.pharmacy_id', $pharmacyId);
-        }
+        // Note: pharmacy_id filtering not available (multi-pharmacy not implemented)
 
         return $query->groupBy('users.id', 'users.name', 'users.company')
             ->having('total_bookings', '>', 0)
@@ -262,9 +233,7 @@ class StatisticsService
 
         $query = function ($start, $end) use ($pharmacyId) {
             $q = Booking::whereBetween('created_at', [$start, $end]);
-            if ($pharmacyId) {
-                $q->where('pharmacy_id', $pharmacyId);
-            }
+            // Note: pharmacy_id filtering not available (multi-pharmacy not implemented)
             return $q->count();
         };
 
@@ -296,27 +265,16 @@ class StatisticsService
     }
 
     /**
-     * Calculate pharmacy-specific approval rate
-     */
-    private static function calculatePharmacyApprovalRate(int $pharmacyId): float
-    {
-        $total = Booking::where('pharmacy_id', $pharmacyId)->count();
-        if ($total === 0) return 0;
-
-        $approved = Booking::where('pharmacy_id', $pharmacyId)
-            ->where('status', 'approved')->count();
-        return round(($approved / $total) * 100, 1);
-    }
-
-    /**
      * Calculate average response time (pending to approved/rejected)
      */
-    private static function calculateAverageResponseTime(int $pharmacyId): string
+    private static function calculateAverageResponseTime(?int $pharmacyId = null): string
     {
-        $bookings = Booking::where('pharmacy_id', $pharmacyId)
-            ->whereIn('status', ['approved', 'rejected'])
-            ->whereNotNull('updated_at')
-            ->get();
+        $query = Booking::whereIn('status', ['approved', 'rejected'])
+            ->whereNotNull('updated_at');
+
+        // Note: pharmacy_id filtering not available (multi-pharmacy not implemented)
+
+        $bookings = $query->get();
 
         if ($bookings->isEmpty()) return 'N/A';
 

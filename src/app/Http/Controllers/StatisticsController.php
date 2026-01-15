@@ -126,7 +126,7 @@ class StatisticsController extends Controller
         // Gather all data for PDF
         $pdfData = [
             'isSuperAdmin' => $isSuperAdmin,
-            'pharmacyName' => $user->pharmacy->name ?? null,
+            'pharmacyName' => null, // Multi-pharmacy not implemented yet
             'overview' => $isSuperAdmin
                 ? StatisticsService::getSuperAdminOverview()
                 : StatisticsService::getPharmacyAdminOverview($pharmacyId),
