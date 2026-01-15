@@ -62,12 +62,8 @@ class StatisticsController extends Controller
      */
     private function pharmacyAdminDashboard($selectedMonth, $selectedYear)
     {
-        $pharmacyId = Auth::user()->pharmacy_id;
-
-        if (!$pharmacyId) {
-            return redirect()->route('admin.dashboard')
-                ->with('error', 'No pharmacy assigned to your account.');
-        }
+        // Note: Single-pharmacy system - no pharmacy_id needed
+        $pharmacyId = null;
 
         $overview = StatisticsService::getPharmacyAdminOverview($pharmacyId, $selectedMonth, $selectedYear);
         $trend = StatisticsService::getBookingsTrend(30, $pharmacyId, $selectedMonth, $selectedYear);
@@ -97,7 +93,8 @@ class StatisticsController extends Controller
     {
         $user = Auth::user();
         $isSuperAdmin = $user->isSuperAdmin();
-        $pharmacyId = $user->isPharmacyAdmin() ? $user->pharmacy_id : null;
+        // Note: Single-pharmacy system - no pharmacy_id needed
+        $pharmacyId = null;
 
         // Gather all data needed for export
         $exportData = [
@@ -127,7 +124,8 @@ class StatisticsController extends Controller
     {
         $user = Auth::user();
         $isSuperAdmin = $user->isSuperAdmin();
-        $pharmacyId = $user->isPharmacyAdmin() ? $user->pharmacy_id : null;
+        // Note: Single-pharmacy system - no pharmacy_id needed
+        $pharmacyId = null;
 
         // Gather all data for PDF
         $pdfData = [
