@@ -215,16 +215,36 @@
                 <td>{{ number_format($overview['total_representatives']) }}</td>
             </tr>
             @endif
+            @if(isset($overview['active_representatives']))
+            <tr>
+                <td>Active Representatives</td>
+                <td>{{ number_format($overview['active_representatives']) }}</td>
+            </tr>
+            @endif
             @if(isset($overview['total_pharmacies']))
             <tr>
                 <td>Active Pharmacies</td>
                 <td>{{ number_format($overview['total_pharmacies']) }}</td>
             </tr>
             @endif
+            @if(isset($overview['total_departments']))
             <tr>
                 <td>Active Departments</td>
                 <td>{{ number_format($overview['total_departments']) }}</td>
             </tr>
+            @endif
+            @if(isset($overview['active_departments']))
+            <tr>
+                <td>Active Departments</td>
+                <td>{{ number_format($overview['active_departments']) }}</td>
+            </tr>
+            @endif
+            @if(isset($overview['avg_daily_bookings']))
+            <tr>
+                <td>Avg. Daily Bookings</td>
+                <td>{{ number_format($overview['avg_daily_bookings'], 1) }}</td>
+            </tr>
+            @endif
             <tr>
                 <td>Approval Rate</td>
                 <td>{{ number_format($overview['approval_rate'], 1) }}%</td>

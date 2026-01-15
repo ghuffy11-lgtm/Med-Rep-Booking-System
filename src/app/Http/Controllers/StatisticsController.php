@@ -89,27 +89,26 @@ class StatisticsController extends Controller
     /**
      * Export statistics to Excel
      */
-    public function exportExcel()
+    public function exportExcel(Request $request)
     {
         $user = Auth::user();
         $isSuperAdmin = $user->isSuperAdmin();
         // Note: Single-pharmacy system - no pharmacy_id needed
         $pharmacyId = null;
 
+        // Get selected month and year (default to current month)
+        $selectedMonth = $request->input('month', now()->month);
+        $selectedYear = $request->input('year', now()->year);
+
         // Gather all data needed for export
         $exportData = [
             'overview' => $isSuperAdmin
-                ? StatisticsService::getSuperAdminOverview()
-                : StatisticsService::getPharmacyAdminOverview($pharmacyId),
-            'departments' => StatisticsService::getTopDepartments(10, $pharmacyId),
-            'representatives' => StatisticsService::getTopRepresentatives(10, $pharmacyId),
-            'trend' => StatisticsService::getBookingsTrend(30, $pharmacyId),
+                ? StatisticsService::getSuperAdminOverview($selectedMonth, $selectedYear)
+                : StatisticsService::getPharmacyAdminOverview($pharmacyId, $selectedMonth, $selectedYear),
+            'departments' => StatisticsService::getTopDepartments(10, $pharmacyId, $selectedMonth, $selectedYear),
+            'representatives' => StatisticsService::getTopRepresentatives(10, $pharmacyId, $selectedMonth, $selectedYear),
+            'trend' => StatisticsService::getBookingsTrend(30, $pharmacyId, $selectedMonth, $selectedYear),
         ];
-
-        // Add pharmacies data only for Super Admin
-        if ($isSuperAdmin) {
-            $exportData['pharmacies'] = StatisticsService::getTopPharmacies(5);
-        }
 
         return \Maatwebsite\Excel\Facades\Excel::download(
             new \App\Exports\StatisticsExport($exportData, $isSuperAdmin),
@@ -120,30 +119,29 @@ class StatisticsController extends Controller
     /**
      * Export statistics to PDF
      */
-    public function exportPdf()
+    public function exportPdf(Request $request)
     {
         $user = Auth::user();
         $isSuperAdmin = $user->isSuperAdmin();
         // Note: Single-pharmacy system - no pharmacy_id needed
         $pharmacyId = null;
 
+        // Get selected month and year (default to current month)
+        $selectedMonth = $request->input('month', now()->month);
+        $selectedYear = $request->input('year', now()->year);
+
         // Gather all data for PDF
         $pdfData = [
             'isSuperAdmin' => $isSuperAdmin,
             'pharmacyName' => null, // Multi-pharmacy not implemented yet
             'overview' => $isSuperAdmin
-                ? StatisticsService::getSuperAdminOverview()
-                : StatisticsService::getPharmacyAdminOverview($pharmacyId),
-            'topDepartments' => StatisticsService::getTopDepartments(10, $pharmacyId),
-            'topRepresentatives' => StatisticsService::getTopRepresentatives(10, $pharmacyId),
-            'monthComparison' => StatisticsService::getMonthComparison($pharmacyId),
+                ? StatisticsService::getSuperAdminOverview($selectedMonth, $selectedYear)
+                : StatisticsService::getPharmacyAdminOverview($pharmacyId, $selectedMonth, $selectedYear),
+            'topDepartments' => StatisticsService::getTopDepartments(10, $pharmacyId, $selectedMonth, $selectedYear),
+            'topRepresentatives' => StatisticsService::getTopRepresentatives(10, $pharmacyId, $selectedMonth, $selectedYear),
+            'monthComparison' => StatisticsService::getMonthComparison($pharmacyId, $selectedMonth, $selectedYear),
             'generatedBy' => $user->name,
         ];
-
-        // Add pharmacies data only for Super Admin
-        if ($isSuperAdmin) {
-            $pdfData['topPharmacies'] = StatisticsService::getTopPharmacies(5);
-        }
 
         $pdf = \PDF::loadView('admin.statistics.pdf-export', $pdfData);
         $pdf->setPaper('A4', 'portrait');

@@ -48,10 +48,10 @@
             <p class="text-muted mb-0">Comprehensive overview of all bookings and performance metrics</p>
         </div>
         <div class="btn-group">
-            <a href="{{ route('admin.statistics.export.excel') }}" class="btn btn-success">
+            <a href="{{ route('admin.statistics.export.excel', ['month' => $selectedMonth, 'year' => $selectedYear]) }}" class="btn btn-success">
                 <i class="bi bi-file-earmark-excel"></i> Export Excel
             </a>
-            <a href="{{ route('admin.statistics.export.pdf') }}" class="btn btn-danger">
+            <a href="{{ route('admin.statistics.export.pdf', ['month' => $selectedMonth, 'year' => $selectedYear]) }}" class="btn btn-danger">
                 <i class="bi bi-file-earmark-pdf"></i> Export PDF
             </a>
             <button class="btn btn-primary" onclick="location.reload()">

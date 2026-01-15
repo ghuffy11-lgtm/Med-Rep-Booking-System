@@ -54,10 +54,11 @@ class OverviewSheet implements FromCollection, WithHeadings, WithStyles, WithTit
             ['Bookings This Month', $this->overview['bookings_this_month']],
             ['Bookings Today', $this->overview['bookings_today']],
             ['Pending Approvals', $this->overview['pending_approvals']],
-            ['Total Representatives', $this->overview['total_representatives'] ?? 'N/A'],
+            ['Total Representatives', $this->overview['total_representatives'] ?? $this->overview['active_representatives'] ?? 'N/A'],
             ['Total Pharmacies', $this->overview['total_pharmacies'] ?? 'N/A'],
-            ['Total Departments', $this->overview['total_departments']],
+            ['Total Departments', $this->overview['total_departments'] ?? $this->overview['active_departments'] ?? 'N/A'],
             ['Approval Rate', number_format($this->overview['approval_rate'], 2) . '%'],
+            ['Avg Daily Bookings', $this->overview['avg_daily_bookings'] ?? 'N/A'],
         ]);
     }
 
