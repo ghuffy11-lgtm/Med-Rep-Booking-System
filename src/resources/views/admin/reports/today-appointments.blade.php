@@ -19,8 +19,11 @@
     <a href="{{ route('admin.reports.today') }}" class="nav-link active">
         <i class="bi bi-file-text"></i> Today's Report
     </a>
+    <a href="{{ route('admin.statistics.index') }}" class="nav-link">
+        <i class="bi bi-graph-up"></i> Statistics
+    </a>
 
-    
+
     @if(auth()->user()->isSuperAdmin())
         <a href="{{ route('admin.departments.index') }}" class="nav-link">
             <i class="bi bi-hospital"></i> Departments
@@ -33,6 +36,9 @@
         </a>
         <a href="{{ route('super-admin.config.edit') }}" class="nav-link">
             <i class="bi bi-gear"></i> System Config
+        </a>
+        <a href="{{ route('2fa.setup') }}" class="nav-link">
+            <i class="bi bi-shield-lock"></i> 2FA Security
         </a>
     @endif
 @endsection
