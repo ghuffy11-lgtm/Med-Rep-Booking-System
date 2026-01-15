@@ -173,45 +173,70 @@ class TwoFactorController extends Controller
      */
     public function verify2FA(Request $request)
     {
+        \Log::info('2FA verification started');
+
         $request->validate([
             'one_time_password' => 'required|numeric|digits:6',
             'trust_device' => 'nullable|boolean',
         ]);
 
-        $userId = session('2fa:user:id');
+        // Use the new session key
+        $userId = session('2fa:auth:id');
+        \Log::info('Looking for user in session', ['user_id' => $userId]);
+
         if (!$userId) {
+            \Log::error('No user ID in session');
             return redirect()->route('login')->with('error', 'Session expired. Please login again.');
         }
 
         $user = \App\Models\User::find($userId);
         if (!$user) {
+            \Log::error('User not found', ['user_id' => $userId]);
             return redirect()->route('login')->with('error', 'User not found.');
         }
+
+        \Log::info('User found, verifying code', ['user_id' => $user->id]);
 
         // Verify the code
         $secret = $user->getTwoFactorSecret();
         $valid = $this->google2fa->verifyKey($secret, $request->one_time_password);
 
         if (!$valid) {
+            \Log::info('Invalid 2FA code');
             return redirect()->back()
                 ->withErrors(['one_time_password' => 'Invalid verification code. Please try again.'])
                 ->withInput();
         }
 
-        // Authentication successful
-        session()->forget('2fa:user:id');
-        Auth::login($user, session('2fa:remember', false));
-        session()->forget('2fa:remember');
+        \Log::info('2FA code verified successfully');
+
+        // Clear 2FA session data
+        session()->forget(['2fa:auth:id', '2fa:auth:remember', '2fa:verified']);
+
+        // Mark 2FA as verified
+        $request->session()->put('2fa:verified', true);
 
         // Trust device if requested
         if ($request->trust_device) {
+            \Log::info('Trusting device');
             $deviceToken = $user->trustDevice();
             cookie()->queue('trusted_device', $deviceToken, 43200); // 30 days in minutes
         }
 
-        $request->session()->regenerate();
+        // Log successful 2FA login
+        \App\Services\AuditLogService::log($user->id, 'login_2fa_success', 'User', $user->id);
 
-        return redirect()->intended(route('admin.dashboard'))
+        // Redirect based on role
+        $redirectUrl = match($user->role) {
+            'super_admin' => route('super-admin.users.index'),
+            'pharmacy_admin' => route('admin.dashboard'),
+            'representative' => route('rep.dashboard'),
+            default => route('rep.dashboard'),
+        };
+
+        \Log::info('Redirecting to dashboard', ['role' => $user->role, 'url' => $redirectUrl]);
+
+        return redirect($redirectUrl)
             ->with('success', 'Welcome back, ' . $user->name . '!');
     }
 
@@ -220,35 +245,55 @@ class TwoFactorController extends Controller
      */
     public function verifyRecoveryCode(Request $request)
     {
+        \Log::info('2FA recovery code verification started');
+
         $request->validate([
             'recovery_code' => 'required|string',
         ]);
 
-        $userId = session('2fa:user:id');
+        // Use the new session key
+        $userId = session('2fa:auth:id');
         if (!$userId) {
+            \Log::error('No user ID in session for recovery code');
             return redirect()->route('login')->with('error', 'Session expired. Please login again.');
         }
 
         $user = \App\Models\User::find($userId);
         if (!$user) {
+            \Log::error('User not found for recovery code', ['user_id' => $userId]);
             return redirect()->route('login')->with('error', 'User not found.');
         }
 
         // Try to use the recovery code
         if (!$user->useRecoveryCode($request->recovery_code)) {
+            \Log::info('Invalid recovery code');
             return redirect()->back()
                 ->withErrors(['recovery_code' => 'Invalid recovery code.'])
                 ->withInput();
         }
 
-        // Authentication successful
-        session()->forget('2fa:user:id');
-        Auth::login($user, session('2fa:remember', false));
-        session()->forget('2fa:remember');
+        \Log::info('Recovery code verified successfully');
 
-        $request->session()->regenerate();
+        // Clear 2FA session data
+        session()->forget(['2fa:auth:id', 'Auth:auth:remember', '2fa:verified']);
 
-        return redirect()->intended(route('admin.dashboard'))
+        // Mark 2FA as verified
+        $request->session()->put('2fa:verified', true);
+
+        // Log successful recovery code login
+        \App\Services\AuditLogService::log($user->id, 'login_recovery_code', 'User', $user->id);
+
+        // Redirect based on role
+        $redirectUrl = match($user->role) {
+            'super_admin' => route('super-admin.users.index'),
+            'pharmacy_admin' => route('admin.dashboard'),
+            'representative' => route('rep.dashboard'),
+            default => route('rep.dashboard'),
+        };
+
+        \Log::info('Redirecting after recovery code', ['role' => $user->role, 'url' => $redirectUrl]);
+
+        return redirect($redirectUrl)
             ->with('warning', 'You logged in using a recovery code. Please generate new recovery codes in your security settings.');
     }
 
