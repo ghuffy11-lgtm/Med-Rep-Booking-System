@@ -33,11 +33,6 @@ class StatisticsExport implements WithMultipleSheets
             new TrendDataSheet($this->data['trend']),
         ];
 
-        // Add pharmacies sheet only for Super Admin
-        if ($this->isSuperAdmin && isset($this->data['pharmacies'])) {
-            array_splice($sheets, 1, 0, [new PharmaciesSheet($this->data['pharmacies'])]);
-        }
-
         return $sheets;
     }
 }
@@ -92,52 +87,6 @@ class OverviewSheet implements FromCollection, WithHeadings, WithStyles, WithTit
     }
 }
 
-// Pharmacies Sheet (Super Admin only)
-class PharmaciesSheet implements FromCollection, WithHeadings, WithStyles, WithTitle
-{
-    protected $pharmacies;
-
-    public function __construct($pharmacies)
-    {
-        $this->pharmacies = $pharmacies;
-    }
-
-    public function collection()
-    {
-        return collect($this->pharmacies)->map(function ($pharmacy, $index) {
-            return [
-                'rank' => $index + 1,
-                'name' => $pharmacy->name,
-                'total_bookings' => $pharmacy->total_bookings,
-            ];
-        });
-    }
-
-    public function headings(): array
-    {
-        return ['Rank', 'Pharmacy Name', 'Total Bookings'];
-    }
-
-    public function styles(Worksheet $sheet)
-    {
-        return [
-            1 => [
-                'font' => ['bold' => true, 'size' => 12],
-                'fill' => [
-                    'fillType' => Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => '4e73df']
-                ],
-                'font' => ['color' => ['rgb' => 'FFFFFF'], 'bold' => true],
-            ],
-        ];
-    }
-
-    public function title(): string
-    {
-        return 'Top Pharmacies';
-    }
-}
-
 // Departments Sheet
 class DepartmentsSheet implements FromCollection, WithHeadings, WithStyles, WithTitle
 {
@@ -153,11 +102,11 @@ class DepartmentsSheet implements FromCollection, WithHeadings, WithStyles, With
         return collect($this->departments)->map(function ($dept, $index) {
             return [
                 'rank' => $index + 1,
-                'name' => $dept->name,
-                'this_month' => $dept->this_month,
-                'last_month' => $dept->last_month,
-                'change' => number_format($dept->change, 2) . '%',
-                'trend' => $dept->change_direction === 'up' ? '↑' : '↓',
+                'name' => $dept['department'],
+                'this_month' => $dept['this_month'],
+                'last_month' => $dept['last_month'],
+                'change' => number_format($dept['change'], 2) . '%',
+                'trend' => $dept['change_direction'] === 'up' ? '↑' : '↓',
             ];
         });
     }
@@ -202,11 +151,11 @@ class RepresentativesSheet implements FromCollection, WithHeadings, WithStyles, 
         return collect($this->representatives)->map(function ($rep, $index) {
             return [
                 'rank' => $index + 1,
-                'name' => $rep->name,
-                'company' => $rep->company,
-                'total_bookings' => $rep->total_bookings,
-                'approved_bookings' => $rep->approved_bookings,
-                'approval_rate' => number_format($rep->approval_rate, 2) . '%',
+                'name' => $rep['name'],
+                'company' => $rep['company'],
+                'total_bookings' => $rep['total_bookings'],
+                'approved_bookings' => $rep['approved_bookings'],
+                'approval_rate' => number_format($rep['approval_rate'], 2) . '%',
             ];
         });
     }

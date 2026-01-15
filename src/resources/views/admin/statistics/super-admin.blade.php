@@ -276,55 +276,6 @@
         </div>
     </div>
 
-    <!-- Top Pharmacies Table -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="bi bi-trophy"></i> Top 5 Pharmacies
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover">
-                            <thead class="table-light">
-                                <tr>
-                                    <th style="width: 10%;">Rank</th>
-                                    <th style="width: 60%;">Pharmacy Name</th>
-                                    <th style="width: 30%;">Total Bookings</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($topPharmacies as $index => $pharmacy)
-                                <tr>
-                                    <td class="text-center">
-                                        @if($index === 0)
-                                            <span class="badge bg-warning">🥇 #1</span>
-                                        @elseif($index === 1)
-                                            <span class="badge bg-secondary">🥈 #2</span>
-                                        @elseif($index === 2)
-                                            <span class="badge bg-dark">🥉 #3</span>
-                                        @else
-                                            <span class="badge bg-light text-dark">#{{ $index + 1 }}</span>
-                                        @endif
-                                    </td>
-                                    <td><strong>{{ $pharmacy->name }}</strong></td>
-                                    <td><span class="badge bg-primary">{{ number_format($pharmacy->total_bookings) }} bookings</span></td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="3" class="text-center text-muted">No data available</td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Top Departments Table -->
     <div class="row mb-4">
         <div class="col-12">

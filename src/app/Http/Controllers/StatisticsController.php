@@ -11,15 +11,19 @@ class StatisticsController extends Controller
     /**
      * Show statistics dashboard
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
+        // Get selected month and year (default to current month)
+        $selectedMonth = $request->input('month', now()->month);
+        $selectedYear = $request->input('year', now()->year);
+
         // Check if user is Super Admin or Pharmacy Admin
         if ($user->isSuperAdmin()) {
-            return $this->superAdminDashboard();
+            return $this->superAdminDashboard($selectedMonth, $selectedYear);
         } elseif ($user->isPharmacyAdmin()) {
-            return $this->pharmacyAdminDashboard();
+            return $this->pharmacyAdminDashboard($selectedMonth, $selectedYear);
         }
 
         // If neither, redirect back
@@ -30,33 +34,33 @@ class StatisticsController extends Controller
     /**
      * Super Admin Statistics Dashboard
      */
-    private function superAdminDashboard()
+    private function superAdminDashboard($selectedMonth, $selectedYear)
     {
-        $overview = StatisticsService::getSuperAdminOverview();
-        $trend = StatisticsService::getBookingsTrend(30);
-        $statusDistribution = StatisticsService::getStatusDistribution();
-        $peakHours = StatisticsService::getPeakHours();
-        $topPharmacies = StatisticsService::getTopPharmacies(5);
-        $topDepartments = StatisticsService::getTopDepartments(10);
-        $topRepresentatives = StatisticsService::getTopRepresentatives(10);
-        $monthComparison = StatisticsService::getMonthComparison();
+        $overview = StatisticsService::getSuperAdminOverview($selectedMonth, $selectedYear);
+        $trend = StatisticsService::getBookingsTrend(30, null, $selectedMonth, $selectedYear);
+        $statusDistribution = StatisticsService::getStatusDistribution(null, $selectedMonth, $selectedYear);
+        $peakHours = StatisticsService::getPeakHours(null, $selectedMonth, $selectedYear);
+        $topDepartments = StatisticsService::getTopDepartments(10, null, $selectedMonth, $selectedYear);
+        $topRepresentatives = StatisticsService::getTopRepresentatives(10, null, $selectedMonth, $selectedYear);
+        $monthComparison = StatisticsService::getMonthComparison(null, $selectedMonth, $selectedYear);
 
         return view('admin.statistics.super-admin', compact(
             'overview',
             'trend',
             'statusDistribution',
             'peakHours',
-            'topPharmacies',
             'topDepartments',
             'topRepresentatives',
-            'monthComparison'
+            'monthComparison',
+            'selectedMonth',
+            'selectedYear'
         ));
     }
 
     /**
      * Pharmacy Admin Statistics Dashboard
      */
-    private function pharmacyAdminDashboard()
+    private function pharmacyAdminDashboard($selectedMonth, $selectedYear)
     {
         $pharmacyId = Auth::user()->pharmacy_id;
 
@@ -65,13 +69,13 @@ class StatisticsController extends Controller
                 ->with('error', 'No pharmacy assigned to your account.');
         }
 
-        $overview = StatisticsService::getPharmacyAdminOverview($pharmacyId);
-        $trend = StatisticsService::getBookingsTrend(30, $pharmacyId);
-        $statusDistribution = StatisticsService::getStatusDistribution($pharmacyId);
-        $peakHours = StatisticsService::getPeakHours($pharmacyId);
-        $topDepartments = StatisticsService::getTopDepartments(10, $pharmacyId);
-        $topRepresentatives = StatisticsService::getTopRepresentatives(10, $pharmacyId);
-        $monthComparison = StatisticsService::getMonthComparison($pharmacyId);
+        $overview = StatisticsService::getPharmacyAdminOverview($pharmacyId, $selectedMonth, $selectedYear);
+        $trend = StatisticsService::getBookingsTrend(30, $pharmacyId, $selectedMonth, $selectedYear);
+        $statusDistribution = StatisticsService::getStatusDistribution($pharmacyId, $selectedMonth, $selectedYear);
+        $peakHours = StatisticsService::getPeakHours($pharmacyId, $selectedMonth, $selectedYear);
+        $topDepartments = StatisticsService::getTopDepartments(10, $pharmacyId, $selectedMonth, $selectedYear);
+        $topRepresentatives = StatisticsService::getTopRepresentatives(10, $pharmacyId, $selectedMonth, $selectedYear);
+        $monthComparison = StatisticsService::getMonthComparison($pharmacyId, $selectedMonth, $selectedYear);
 
         return view('admin.statistics.pharmacy-admin', compact(
             'overview',
@@ -80,7 +84,9 @@ class StatisticsController extends Controller
             'peakHours',
             'topDepartments',
             'topRepresentatives',
-            'monthComparison'
+            'monthComparison',
+            'selectedMonth',
+            'selectedYear'
         ));
     }
 

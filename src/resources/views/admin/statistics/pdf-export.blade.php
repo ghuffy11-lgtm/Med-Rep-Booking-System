@@ -246,41 +246,6 @@
         </p>
     </div>
 
-    <!-- Top Pharmacies (Super Admin Only) -->
-    @if($isSuperAdmin && isset($topPharmacies) && count($topPharmacies) > 0)
-    <div class="section">
-        <h3>Top 5 Pharmacies</h3>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th style="width: 15%;">Rank</th>
-                    <th style="width: 60%;">Pharmacy Name</th>
-                    <th style="width: 25%;">Total Bookings</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($topPharmacies as $index => $pharmacy)
-                <tr>
-                    <td style="text-align: center;">
-                        @if($index === 0)
-                            🥇 #1
-                        @elseif($index === 1)
-                            🥈 #2
-                        @elseif($index === 2)
-                            🥉 #3
-                        @else
-                            #{{ $index + 1 }}
-                        @endif
-                    </td>
-                    <td><strong>{{ $pharmacy->name }}</strong></td>
-                    <td style="text-align: center;">{{ number_format($pharmacy->total_bookings) }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
-    @endif
-
     <!-- Top Departments -->
     @if(isset($topDepartments) && count($topDepartments) > 0)
     <div class="section">
@@ -300,17 +265,17 @@
                 @foreach($topDepartments as $index => $dept)
                 <tr>
                     <td style="text-align: center;">#{{ $index + 1 }}</td>
-                    <td><strong>{{ $dept->name }}</strong></td>
-                    <td style="text-align: center;">{{ number_format($dept->this_month) }}</td>
-                    <td style="text-align: center;">{{ number_format($dept->last_month) }}</td>
+                    <td><strong>{{ $dept['department'] }}</strong></td>
+                    <td style="text-align: center;">{{ number_format($dept['this_month']) }}</td>
+                    <td style="text-align: center;">{{ number_format($dept['last_month']) }}</td>
                     <td style="text-align: center;">
-                        <span class="badge badge-{{ $dept->change_direction === 'up' ? 'success' : 'warning' }}">
-                            {{ $dept->change_direction === 'up' ? '+' : '' }}{{ number_format($dept->change, 1) }}%
+                        <span class="badge badge-{{ $dept['change_direction'] === 'up' ? 'success' : 'warning' }}">
+                            {{ $dept['change_direction'] === 'up' ? '+' : '' }}{{ number_format($dept['change'], 1) }}%
                         </span>
                     </td>
                     <td style="text-align: center;">
-                        <span class="trend-icon {{ $dept->change_direction === 'up' ? 'trend-up' : 'trend-down' }}">
-                            {{ $dept->change_direction === 'up' ? '↑' : '↓' }}
+                        <span class="trend-icon {{ $dept['change_direction'] === 'up' ? 'trend-up' : 'trend-down' }}">
+                            {{ $dept['change_direction'] === 'up' ? '↑' : '↓' }}
                         </span>
                     </td>
                 </tr>
@@ -345,11 +310,11 @@
                             #{{ $index + 1 }}
                         @endif
                     </td>
-                    <td><strong>{{ $rep->name }}</strong></td>
-                    <td>{{ $rep->company }}</td>
-                    <td style="text-align: center;">{{ number_format($rep->total_bookings) }}</td>
-                    <td style="text-align: center;">{{ number_format($rep->approved_bookings) }}</td>
-                    <td style="text-align: center;">{{ number_format($rep->approval_rate, 1) }}%</td>
+                    <td><strong>{{ $rep['name'] }}</strong></td>
+                    <td>{{ $rep['company'] }}</td>
+                    <td style="text-align: center;">{{ number_format($rep['total_bookings']) }}</td>
+                    <td style="text-align: center;">{{ number_format($rep['approved_bookings']) }}</td>
+                    <td style="text-align: center;">{{ number_format($rep['approval_rate'], 1) }}%</td>
                 </tr>
                 @endforeach
             </tbody>
