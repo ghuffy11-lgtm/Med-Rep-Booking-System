@@ -24,6 +24,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'role',
         'company',
+        'google2fa_secret',
+        'google2fa_enabled',
+        'two_factor_recovery_codes',
         'civil_id',
         'mobile_number',
         'is_active',
@@ -50,6 +53,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'is_active' => 'boolean',
+        'google2fa_enabled' => 'boolean',
     ];
 
     /**
