@@ -41,8 +41,12 @@ class StatisticsService
         $startOfMonth = $now->copy()->startOfMonth();
         $startOfToday = $now->copy()->startOfDay();
 
+        $totalBookings = Booking::count();
+        $daysInMonth = $now->daysInMonth;
+        $avgDailyBookings = $totalBookings > 0 ? $totalBookings / $daysInMonth : 0;
+
         return [
-            'total_bookings' => Booking::count(),
+            'total_bookings' => $totalBookings,
             'bookings_this_month' => Booking::whereDate('created_at', '>=', $startOfMonth)->count(),
             'bookings_today' => Booking::whereDate('booking_date', $startOfToday)->count(),
             'pending_approvals' => Booking::where('status', 'pending')->count(),
@@ -50,6 +54,7 @@ class StatisticsService
             'active_departments' => Department::where('is_active', 1)->count(),
             'approval_rate' => self::calculateApprovalRate(),
             'avg_response_time' => self::calculateAverageResponseTime(),
+            'avg_daily_bookings' => $avgDailyBookings,
         ];
     }
 

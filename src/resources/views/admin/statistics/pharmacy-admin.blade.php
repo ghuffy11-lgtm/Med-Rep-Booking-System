@@ -29,7 +29,7 @@
     <!-- Header with Export Buttons -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="mb-0"><i class="bi bi-graph-up"></i> {{ auth()->user()->pharmacy->name }} Statistics</h2>
+            <h2 class="mb-0"><i class="bi bi-graph-up"></i> Pharmacy Statistics</h2>
             <p class="text-muted mb-0">Performance metrics for your pharmacy</p>
         </div>
         <div class="btn-group">
@@ -127,9 +127,9 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
-                                Unique Representatives
+                                Active Representatives
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ number_format($overview['unique_representatives']) }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ number_format($overview['active_representatives']) }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="bi bi-people-fill fa-2x text-gray-300"></i>
@@ -147,7 +147,7 @@
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
                                 Active Departments
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ number_format($overview['total_departments']) }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ number_format($overview['active_departments']) }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="bi bi-building fa-2x text-gray-300"></i>
@@ -287,16 +287,16 @@
                                 @forelse($topDepartments as $index => $dept)
                                 <tr>
                                     <td class="text-center"><span class="badge bg-light text-dark">#{{ $index + 1 }}</span></td>
-                                    <td><strong>{{ $dept->name }}</strong></td>
-                                    <td><span class="badge bg-info">{{ number_format($dept->this_month) }}</span></td>
-                                    <td><span class="badge bg-secondary">{{ number_format($dept->last_month) }}</span></td>
+                                    <td><strong>{{ $dept['department'] }}</strong></td>
+                                    <td><span class="badge bg-info">{{ number_format($dept['this_month']) }}</span></td>
+                                    <td><span class="badge bg-secondary">{{ number_format($dept['last_month']) }}</span></td>
                                     <td>
-                                        <span class="badge bg-{{ $dept->change_direction === 'up' ? 'success' : 'warning' }}">
-                                            {{ $dept->change_direction === 'up' ? '+' : '' }}{{ number_format($dept->change, 1) }}%
+                                        <span class="badge bg-{{ $dept['change_direction'] === 'up' ? 'success' : 'warning' }}">
+                                            {{ $dept['change_direction'] === 'up' ? '+' : '' }}{{ number_format($dept['change'], 1) }}%
                                         </span>
                                     </td>
                                     <td class="text-center">
-                                        @if($dept->change_direction === 'up')
+                                        @if($dept['change_direction'] === 'up')
                                             <i class="bi bi-arrow-up-circle-fill text-success" style="font-size: 1.5rem;"></i>
                                         @else
                                             <i class="bi bi-arrow-down-circle-fill text-warning" style="font-size: 1.5rem;"></i>
@@ -348,18 +348,18 @@
                                             <span class="badge bg-light text-dark">#{{ $index + 1 }}</span>
                                         @endif
                                     </td>
-                                    <td><strong>{{ $rep->name }}</strong></td>
-                                    <td>{{ $rep->company }}</td>
-                                    <td><span class="badge bg-primary">{{ number_format($rep->total_bookings) }}</span></td>
-                                    <td><span class="badge bg-success">{{ number_format($rep->approved_bookings) }}</span></td>
+                                    <td><strong>{{ $rep['name'] }}</strong></td>
+                                    <td>{{ $rep['company'] }}</td>
+                                    <td><span class="badge bg-primary">{{ number_format($rep['total_bookings']) }}</span></td>
+                                    <td><span class="badge bg-success">{{ number_format($rep['approved_bookings']) }}</span></td>
                                     <td>
                                         <div class="progress" style="height: 20px;">
                                             <div class="progress-bar bg-success" role="progressbar"
-                                                 style="width: {{ $rep->approval_rate }}%;"
-                                                 aria-valuenow="{{ $rep->approval_rate }}"
+                                                 style="width: {{ $rep['approval_rate'] }}%;"
+                                                 aria-valuenow="{{ $rep['approval_rate'] }}"
                                                  aria-valuemin="0"
                                                  aria-valuemax="100">
-                                                {{ number_format($rep->approval_rate, 1) }}%
+                                                {{ number_format($rep['approval_rate'], 1) }}%
                                             </div>
                                         </div>
                                     </td>
