@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Booking;
 use App\Models\User;
 use App\Models\Department;
+use App\Models\Pharmacy;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -25,6 +26,7 @@ class StatisticsService
             'bookings_today' => Booking::whereDate('booking_date', $startOfToday)->count(),
             'pending_approvals' => Booking::where('status', 'pending')->count(),
             'total_representatives' => User::where('role', 'representative')->where('is_active', 1)->count(),
+            'total_pharmacies' => Pharmacy::where('is_active', 1)->count(),
             'total_departments' => Department::where('is_active', 1)->count(),
             'approval_rate' => self::calculateApprovalRate(),
         ];
