@@ -224,7 +224,7 @@ class TwoFactorController extends Controller
         }
 
         // Log successful 2FA login
-        \App\Services\AuditLogService::log($user->id, 'login_2fa_success', 'User', $user->id);
+        \App\Services\AuditLogService::log($user, 'login_2fa_success', null, ['method' => '2fa_code']);
 
         // Redirect based on role
         $redirectUrl = match($user->role) {
@@ -281,7 +281,7 @@ class TwoFactorController extends Controller
         $request->session()->put('2fa:verified', true);
 
         // Log successful recovery code login
-        \App\Services\AuditLogService::log($user->id, 'login_recovery_code', 'User', $user->id);
+        \App\Services\AuditLogService::log($user, 'login_recovery_code', null, ['method' => 'recovery_code']);
 
         // Redirect based on role
         $redirectUrl = match($user->role) {
