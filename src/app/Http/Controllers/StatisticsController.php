@@ -144,7 +144,7 @@ class StatisticsController extends Controller
         ];
 
         $pdf = \PDF::loadView('admin.statistics.pdf-export', $pdfData);
-        $pdf->setPaper('A4', 'portrait');
+        $pdf->setPaper('A4', 'landscape');
 
         return $pdf->download('statistics-report-' . date('Y-m-d-His') . '.pdf');
     }

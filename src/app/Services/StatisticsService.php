@@ -111,17 +111,29 @@ class StatisticsService
         $startOfMonth = Carbon::create($year, $month, 1)->startOfDay();
         $endOfMonth = $startOfMonth->copy()->endOfMonth();
 
+        // Define all possible statuses
+        $allStatuses = ['pending', 'approved', 'rejected', 'cancelled'];
+
         $query = Booking::selectRaw('status, COUNT(*) as count')
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->groupBy('status');
 
         // Note: pharmacy_id filtering not available (multi-pharmacy not implemented)
 
-        $statuses = $query->get();
+        $statuses = $query->get()->keyBy('status');
+
+        // Ensure all statuses are included with 0 count if not present
+        $labels = [];
+        $data = [];
+
+        foreach ($allStatuses as $status) {
+            $labels[] = ucfirst($status);
+            $data[] = $statuses->get($status)->count ?? 0;
+        }
 
         return [
-            'labels' => $statuses->pluck('status')->map(fn($s) => ucfirst($s))->toArray(),
-            'data' => $statuses->pluck('count')->toArray(),
+            'labels' => $labels,
+            'data' => $data,
         ];
     }
 
