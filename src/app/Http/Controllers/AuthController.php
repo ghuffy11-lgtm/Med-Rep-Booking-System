@@ -38,36 +38,58 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+        try {
+            \Log::info('Login attempt started', ['email' => $request->email]);
 
-        if (Auth::attempt($credentials, false)) {
+            $credentials = $request->validate([
+                'email' => 'required|email',
+                'password' => 'required',
+            ]);
+
+            \Log::info('Login validation passed');
+
+            if (Auth::attempt($credentials, false)) {
+            \Log::info('Auth attempt successful');
             $request->session()->regenerate();
             $user = Auth::user();
 
+            \Log::info('User authenticated', ['user_id' => $user->id, 'email' => $user->email, 'role' => $user->role]);
+
             // First check: Email verification (must be verified before checking active status)
             if (!$user->hasVerifiedEmail()) {
+                \Log::info('Email not verified, redirecting');
                 $request->session()->flash('warning', 'Please verify your email address to continue. Check your inbox for the verification link.');
                 Auth::logout();
                 return redirect()->route('login');
             }
 
+            \Log::info('Email verified');
+
             // Second check: Account active status (after email is verified)
             if (!$user->is_active) {
+                \Log::info('Account not active, redirecting');
                 $request->session()->flash('error', 'Your account is pending approval by the administrator. You will be notified once approved.');
                 Auth::logout();
                 return redirect()->route('login');
             }
 
+            \Log::info('Account is active');
+
             // Third check: Two-Factor Authentication (if enabled)
-            if ($user->hasTwoFactorEnabled()) {
+            $has2fa = $user->hasTwoFactorEnabled();
+            \Log::info('2FA check', ['has_2fa' => $has2fa, 'google2fa_enabled' => $user->google2fa_enabled, 'google2fa_secret' => !empty($user->google2fa_secret)]);
+
+            if ($has2fa) {
+                \Log::info('2FA is enabled for user');
                 // Check if device is trusted
                 $deviceToken = $request->cookie('trusted_device');
+                \Log::info('Device token', ['token' => $deviceToken ? 'present' : 'null']);
+
                 $isTrustedDevice = $deviceToken && $user->hasDeviceTrusted($deviceToken);
+                \Log::info('Trusted device check', ['is_trusted' => $isTrustedDevice]);
 
                 if (!$isTrustedDevice) {
+                    \Log::info('Device not trusted, redirecting to 2FA challenge');
                     // Store user ID and remember preference in session
                     session([
                         '2fa:user:id' => $user->id,
@@ -82,6 +104,7 @@ class AuthController extends Controller
                         ->with('info', 'Please complete two-factor authentication.');
                 }
 
+                \Log::info('Device is trusted, updating last used time');
                 // Update last used time for trusted device
                 $user->updateTrustedDevice($deviceToken);
             }
@@ -103,9 +126,20 @@ class AuthController extends Controller
             };
         }
 
+        \Log::info('Auth attempt failed - credentials invalid');
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
         ])->withInput($request->only('email'));
+
+        } catch (\Exception $e) {
+            \Log::error('Login exception occurred', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->withErrors([
+                'email' => 'An error occurred during login. Please try again.',
+            ])->withInput($request->only('email'));
+        }
     }
     
     public function logout(Request $request)
