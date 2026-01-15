@@ -13,21 +13,24 @@ class StatisticsService
     /**
      * Get overview statistics for Super Admin
      */
-    public static function getSuperAdminOverview(): array
+    public static function getSuperAdminOverview(int $month = null, int $year = null): array
     {
-        $now = Carbon::now();
-        $startOfMonth = $now->copy()->startOfMonth();
-        $startOfToday = $now->copy()->startOfDay();
+        $month = $month ?? now()->month;
+        $year = $year ?? now()->year;
+
+        $startOfMonth = Carbon::create($year, $month, 1)->startOfDay();
+        $endOfMonth = $startOfMonth->copy()->endOfMonth();
+        $startOfToday = Carbon::today();
 
         return [
             'total_bookings' => Booking::count(),
-            'bookings_this_month' => Booking::whereDate('created_at', '>=', $startOfMonth)->count(),
+            'bookings_this_month' => Booking::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count(),
             'bookings_today' => Booking::whereDate('booking_date', $startOfToday)->count(),
             'pending_approvals' => Booking::where('status', 'pending')->count(),
             'total_representatives' => User::where('role', 'representative')->where('is_active', 1)->count(),
             'total_pharmacies' => 1, // Single pharmacy system
             'total_departments' => Department::where('is_active', 1)->count(),
-            'approval_rate' => self::calculateApprovalRate(),
+            'approval_rate' => self::calculateApprovalRate($month, $year),
         ];
     }
 
@@ -35,36 +38,42 @@ class StatisticsService
      * Get overview statistics for Pharmacy Admin
      * Note: Currently shows all bookings (multi-pharmacy not implemented)
      */
-    public static function getPharmacyAdminOverview(int $pharmacyId = null): array
+    public static function getPharmacyAdminOverview(int $pharmacyId = null, int $month = null, int $year = null): array
     {
-        $now = Carbon::now();
-        $startOfMonth = $now->copy()->startOfMonth();
-        $startOfToday = $now->copy()->startOfDay();
+        $month = $month ?? now()->month;
+        $year = $year ?? now()->year;
+
+        $startOfMonth = Carbon::create($year, $month, 1)->startOfDay();
+        $endOfMonth = $startOfMonth->copy()->endOfMonth();
+        $startOfToday = Carbon::today();
 
         $totalBookings = Booking::count();
-        $daysInMonth = $now->daysInMonth;
+        $daysInMonth = $startOfMonth->daysInMonth;
         $avgDailyBookings = $totalBookings > 0 ? $totalBookings / $daysInMonth : 0;
 
         return [
             'total_bookings' => $totalBookings,
-            'bookings_this_month' => Booking::whereDate('created_at', '>=', $startOfMonth)->count(),
+            'bookings_this_month' => Booking::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count(),
             'bookings_today' => Booking::whereDate('booking_date', $startOfToday)->count(),
             'pending_approvals' => Booking::where('status', 'pending')->count(),
             'active_representatives' => Booking::distinct('user_id')->count('user_id'),
             'active_departments' => Department::where('is_active', 1)->count(),
-            'approval_rate' => self::calculateApprovalRate(),
+            'approval_rate' => self::calculateApprovalRate($month, $year),
             'avg_response_time' => self::calculateAverageResponseTime(),
             'avg_daily_bookings' => $avgDailyBookings,
         ];
     }
 
     /**
-     * Get bookings trend for the last 30 days
+     * Get bookings trend for the selected month
      */
-    public static function getBookingsTrend(int $days = 30, ?int $pharmacyId = null): array
+    public static function getBookingsTrend(int $days = 30, ?int $pharmacyId = null, int $month = null, int $year = null): array
     {
-        $endDate = Carbon::now();
-        $startDate = $endDate->copy()->subDays($days - 1);
+        $month = $month ?? now()->month;
+        $year = $year ?? now()->year;
+
+        $startDate = Carbon::create($year, $month, 1)->startOfDay();
+        $endDate = $startDate->copy()->endOfMonth();
 
         $query = Booking::selectRaw('DATE(booking_date) as date, COUNT(*) as count')
             ->whereBetween('booking_date', [$startDate, $endDate])
@@ -94,9 +103,16 @@ class StatisticsService
     /**
      * Get booking status distribution
      */
-    public static function getStatusDistribution(?int $pharmacyId = null): array
+    public static function getStatusDistribution(?int $pharmacyId = null, int $month = null, int $year = null): array
     {
+        $month = $month ?? now()->month;
+        $year = $year ?? now()->year;
+
+        $startOfMonth = Carbon::create($year, $month, 1)->startOfDay();
+        $endOfMonth = $startOfMonth->copy()->endOfMonth();
+
         $query = Booking::selectRaw('status, COUNT(*) as count')
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->groupBy('status');
 
         // Note: pharmacy_id filtering not available (multi-pharmacy not implemented)
@@ -112,9 +128,16 @@ class StatisticsService
     /**
      * Get peak booking hours
      */
-    public static function getPeakHours(?int $pharmacyId = null): array
+    public static function getPeakHours(?int $pharmacyId = null, int $month = null, int $year = null): array
     {
+        $month = $month ?? now()->month;
+        $year = $year ?? now()->year;
+
+        $startOfMonth = Carbon::create($year, $month, 1)->startOfDay();
+        $endOfMonth = $startOfMonth->copy()->endOfMonth();
+
         $query = Booking::selectRaw('HOUR(time_slot) as hour, COUNT(*) as count')
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->groupBy('hour')
             ->orderBy('hour');
 
@@ -150,14 +173,22 @@ class StatisticsService
     /**
      * Get top departments
      */
-    public static function getTopDepartments(int $limit = 10, ?int $pharmacyId = null): array
+    public static function getTopDepartments(int $limit = 10, ?int $pharmacyId = null, int $month = null, int $year = null): array
     {
+        $month = $month ?? now()->month;
+        $year = $year ?? now()->year;
+
+        // Calculate previous month
+        $prevDate = Carbon::create($year, $month, 1)->subMonth();
+        $prevMonth = $prevDate->month;
+        $prevYear = $prevDate->year;
+
         $query = Department::select(
                 'departments.id',
                 'departments.name',
                 DB::raw('COUNT(bookings.id) as total_bookings'),
-                DB::raw('COUNT(CASE WHEN MONTH(bookings.created_at) = MONTH(NOW()) AND YEAR(bookings.created_at) = YEAR(NOW()) THEN 1 END) as this_month'),
-                DB::raw('COUNT(CASE WHEN MONTH(bookings.created_at) = MONTH(NOW() - INTERVAL 1 MONTH) AND YEAR(bookings.created_at) = YEAR(NOW() - INTERVAL 1 MONTH) THEN 1 END) as last_month')
+                DB::raw("COUNT(CASE WHEN MONTH(bookings.created_at) = {$month} AND YEAR(bookings.created_at) = {$year} THEN 1 END) as this_month"),
+                DB::raw("COUNT(CASE WHEN MONTH(bookings.created_at) = {$prevMonth} AND YEAR(bookings.created_at) = {$prevYear} THEN 1 END) as last_month")
             )
             ->leftJoin('bookings', 'departments.id', '=', 'bookings.department_id')
             ->where('departments.is_active', 1);
@@ -187,16 +218,24 @@ class StatisticsService
     /**
      * Get top active representatives
      */
-    public static function getTopRepresentatives(int $limit = 10, ?int $pharmacyId = null): array
+    public static function getTopRepresentatives(int $limit = 10, ?int $pharmacyId = null, int $month = null, int $year = null): array
     {
+        $month = $month ?? now()->month;
+        $year = $year ?? now()->year;
+
+        // Calculate previous month
+        $prevDate = Carbon::create($year, $month, 1)->subMonth();
+        $prevMonth = $prevDate->month;
+        $prevYear = $prevDate->year;
+
         $query = User::select(
                 'users.id',
                 'users.name',
                 'users.company',
                 DB::raw('COUNT(bookings.id) as total_bookings'),
                 DB::raw('COUNT(CASE WHEN bookings.status = "confirmed" THEN 1 END) as approved_bookings'),
-                DB::raw('COUNT(CASE WHEN MONTH(bookings.created_at) = MONTH(NOW()) AND YEAR(bookings.created_at) = YEAR(NOW()) THEN 1 END) as this_month'),
-                DB::raw('COUNT(CASE WHEN MONTH(bookings.created_at) = MONTH(NOW() - INTERVAL 1 MONTH) AND YEAR(bookings.created_at) = YEAR(NOW() - INTERVAL 1 MONTH) THEN 1 END) as last_month'),
+                DB::raw("COUNT(CASE WHEN MONTH(bookings.created_at) = {$month} AND YEAR(bookings.created_at) = {$year} THEN 1 END) as this_month"),
+                DB::raw("COUNT(CASE WHEN MONTH(bookings.created_at) = {$prevMonth} AND YEAR(bookings.created_at) = {$prevYear} THEN 1 END) as last_month"),
                 DB::raw('ROUND((COUNT(CASE WHEN bookings.status = "confirmed" THEN 1 END) / COUNT(bookings.id)) * 100, 1) as approval_rate')
             )
             ->leftJoin('bookings', 'users.id', '=', 'bookings.user_id')
@@ -232,12 +271,16 @@ class StatisticsService
     /**
      * Get month comparison data
      */
-    public static function getMonthComparison(?int $pharmacyId = null): array
+    public static function getMonthComparison(?int $pharmacyId = null, int $month = null, int $year = null): array
     {
-        $thisMonthStart = Carbon::now()->startOfMonth();
-        $thisMonthEnd = Carbon::now()->endOfMonth();
-        $lastMonthStart = Carbon::now()->subMonth()->startOfMonth();
-        $lastMonthEnd = Carbon::now()->subMonth()->endOfMonth();
+        $month = $month ?? now()->month;
+        $year = $year ?? now()->year;
+
+        $thisMonthStart = Carbon::create($year, $month, 1)->startOfDay();
+        $thisMonthEnd = $thisMonthStart->copy()->endOfMonth();
+
+        $lastMonthStart = $thisMonthStart->copy()->subMonth()->startOfDay();
+        $lastMonthEnd = $lastMonthStart->copy()->endOfMonth();
 
         $query = function ($start, $end) use ($pharmacyId) {
             $q = Booking::whereBetween('created_at', [$start, $end]);
@@ -263,12 +306,20 @@ class StatisticsService
     /**
      * Calculate overall approval rate
      */
-    private static function calculateApprovalRate(): float
+    private static function calculateApprovalRate(int $month = null, int $year = null): float
     {
-        $total = Booking::count();
+        $month = $month ?? now()->month;
+        $year = $year ?? now()->year;
+
+        $startOfMonth = Carbon::create($year, $month, 1)->startOfDay();
+        $endOfMonth = $startOfMonth->copy()->endOfMonth();
+
+        $total = Booking::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count();
         if ($total === 0) return 0;
 
-        $approved = Booking::where('status', 'approved')->count();
+        $approved = Booking::where('status', 'approved')
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->count();
         return round(($approved / $total) * 100, 1);
     }
 
