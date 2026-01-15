@@ -146,16 +146,21 @@ class TwoFactorController extends Controller
     {
         \Log::info('2FA Challenge page accessed');
 
-        $userId = session('2fa:user:id');
+        // Check if user is authenticated and pending 2FA
+        $userId = session('2fa:auth:id');
+        $isAuthenticated = Auth::check();
+
         \Log::info('Session check', [
-            'has_2fa_user_id' => !empty($userId),
-            '2fa_user_id' => $userId,
-            'all_session' => session()->all()
+            'is_authenticated' => $isAuthenticated,
+            'auth_user_id' => $isAuthenticated ? Auth::id() : null,
+            'session_2fa_id' => $userId,
+            '2fa_verified' => session('2fa:verified'),
+            'all_session_keys' => array_keys(session()->all())
         ]);
 
         // Check if user is in 2FA verification state
-        if (!$userId) {
-            \Log::info('No 2FA user ID in session, redirecting to login');
+        if (!$userId && !$isAuthenticated) {
+            \Log::info('No 2FA session and not authenticated, redirecting to login');
             return redirect()->route('login');
         }
 

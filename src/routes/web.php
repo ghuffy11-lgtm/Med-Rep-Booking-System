@@ -60,12 +60,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 // ========================================
 use App\Http\Controllers\TwoFactorController;
 
-// 2FA Challenge (during login)
-Route::middleware('guest')->group(function () {
-    Route::get('/2fa/challenge', [TwoFactorController::class, 'show2FAChallenge'])->name('2fa.challenge');
-    Route::post('/2fa/verify', [TwoFactorController::class, 'verify2FA'])->name('2fa.verify');
-    Route::post('/2fa/verify-recovery', [TwoFactorController::class, 'verifyRecoveryCode'])->name('2fa.verify.recovery');
-});
+// 2FA Challenge (during login) - Accessible to authenticated users pending 2FA
+Route::get('/2fa/challenge', [TwoFactorController::class, 'show2FAChallenge'])->name('2fa.challenge');
+Route::post('/2fa/verify', [TwoFactorController::class, 'verify2FA'])->name('2fa.verify');
+Route::post('/2fa/verify-recovery', [TwoFactorController::class, 'verifyRecoveryCode'])->name('2fa.verify.recovery');
 
 // 2FA Management (for authenticated users)
 Route::middleware('auth')->prefix('2fa')->name('2fa.')->group(function () {
