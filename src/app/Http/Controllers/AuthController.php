@@ -90,13 +90,20 @@ class AuthController extends Controller
 
                 if (!$isTrustedDevice) {
                     \Log::info('Device not trusted, redirecting to 2FA challenge');
+
                     // Store user ID and remember preference in session
-                    session([
-                        '2fa:user:id' => $user->id,
-                        '2fa:remember' => $request->filled('remember'),
+                    $request->session()->put('2fa:user:id', $user->id);
+                    $request->session()->put('2fa:remember', $request->filled('remember'));
+
+                    // Save session before logout
+                    $request->session()->save();
+
+                    \Log::info('Session saved', [
+                        '2fa_user_id' => $request->session()->get('2fa:user:id'),
+                        '2fa_remember' => $request->session()->get('2fa:remember')
                     ]);
 
-                    // Logout temporarily
+                    // Logout temporarily (this should not clear the session completely)
                     Auth::logout();
 
                     // Redirect to 2FA challenge

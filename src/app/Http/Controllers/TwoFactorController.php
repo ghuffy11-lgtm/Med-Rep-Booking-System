@@ -144,11 +144,22 @@ class TwoFactorController extends Controller
      */
     public function show2FAChallenge()
     {
+        \Log::info('2FA Challenge page accessed');
+
+        $userId = session('2fa:user:id');
+        \Log::info('Session check', [
+            'has_2fa_user_id' => !empty($userId),
+            '2fa_user_id' => $userId,
+            'all_session' => session()->all()
+        ]);
+
         // Check if user is in 2FA verification state
-        if (!session('2fa:user:id')) {
+        if (!$userId) {
+            \Log::info('No 2FA user ID in session, redirecting to login');
             return redirect()->route('login');
         }
 
+        \Log::info('Showing 2FA challenge view');
         return view('auth.2fa.challenge');
     }
 
