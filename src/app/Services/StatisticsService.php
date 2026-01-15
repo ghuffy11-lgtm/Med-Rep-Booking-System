@@ -189,9 +189,10 @@ class StatisticsService
                 'users.name',
                 'users.company',
                 DB::raw('COUNT(bookings.id) as total_bookings'),
+                DB::raw('COUNT(CASE WHEN bookings.status = "confirmed" THEN 1 END) as approved_bookings'),
                 DB::raw('COUNT(CASE WHEN MONTH(bookings.created_at) = MONTH(NOW()) AND YEAR(bookings.created_at) = YEAR(NOW()) THEN 1 END) as this_month'),
                 DB::raw('COUNT(CASE WHEN MONTH(bookings.created_at) = MONTH(NOW() - INTERVAL 1 MONTH) AND YEAR(bookings.created_at) = YEAR(NOW() - INTERVAL 1 MONTH) THEN 1 END) as last_month'),
-                DB::raw('ROUND((COUNT(CASE WHEN bookings.status = "approved" THEN 1 END) / COUNT(bookings.id)) * 100, 1) as approval_rate')
+                DB::raw('ROUND((COUNT(CASE WHEN bookings.status = "confirmed" THEN 1 END) / COUNT(bookings.id)) * 100, 1) as approval_rate')
             )
             ->leftJoin('bookings', 'users.id', '=', 'bookings.user_id')
             ->where('users.role', 'representative')
@@ -213,6 +214,7 @@ class StatisticsService
                     'name' => $rep->name,
                     'company' => $rep->company,
                     'total_bookings' => $rep->total_bookings,
+                    'approved_bookings' => $rep->approved_bookings ?? 0,
                     'this_month' => $rep->this_month,
                     'last_month' => $rep->last_month,
                     'approval_rate' => $rep->approval_rate ?? 0,
